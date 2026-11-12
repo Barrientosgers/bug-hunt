@@ -18,9 +18,18 @@ interface CodeEditorProps {
   onChange: (value: string) => void
   /** Called when the player presses Ctrl+Enter (Cmd+Enter on a Mac). */
   onRun: () => void
+  /** True while the editor is locked (the player has not written a hypothesis yet). */
+  readOnly?: boolean
 }
 
-export function CodeEditor({ path, language, value, onChange, onRun }: CodeEditorProps) {
+export function CodeEditor({
+  path,
+  language,
+  value,
+  onChange,
+  onRun,
+  readOnly = false,
+}: CodeEditorProps) {
   const { theme } = useTheme()
   // The shortcut is registered once, so it reads the latest onRun through a ref.
   const onRunRef = useRef(onRun)
@@ -45,7 +54,10 @@ export function CodeEditor({ path, language, value, onChange, onRun }: CodeEdito
         onMount={handleMount}
         loading={<p className={styles.loading}>Loading the editor…</p>}
         options={{
-          ariaLabel: 'Code editor',
+          ariaLabel: readOnly
+            ? 'Code editor (locked until the journal step)'
+            : 'Code editor',
+          readOnly,
           minimap: { enabled: false },
           fontSize: 14,
           tabSize: language === 'python' ? 4 : 2,
