@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "verify": "echo 'verify: no challenges yet (added in Phase 1)'"
+    "verify": "tsx scripts/verify-challenges.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -29,6 +29,7 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.14.0",
     "prettier": "^3.10.1",
+    "tsx": "^4.23.15",
     "typescript": "~6.0",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.6",

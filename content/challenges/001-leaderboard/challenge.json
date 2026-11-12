@@ -1,0 +1,102 @@
+{
+  "id": "001-leaderboard",
+  "number": 1,
+  "title": "The leaderboard is in the wrong order",
+  "character": "leo",
+  "difficulty": "easy",
+  "skill": "data-types",
+  "languageSpecific": null,
+  "ticket": {
+    "subject": "Leaderboard looks wrong for some players",
+    "body": "Hey! A few users wrote in saying the \"Top Snackers\" list on the home screen puts them in the wrong spot. One person said she has 120 points but shows up below someone with 95. I can't make it happen every time. When I checked with my own test account it looked fine, but I only have small scores. Could someone take a look? Thanks! (Leo, Customer Support)"
+  },
+  "briefing": "Welcome aboard! Today's skill is data types. When a bug only shows up for SOME inputs, ask yourself: what is different about the inputs that fail? Tip: before you change any code, compare one case that passes with one that fails. That one comparison usually points straight at the bug. (Priya)",
+  "lesson": "Values that look like numbers are not always numbers. Comparing two strings compares characters one by one, not their size, so \"95\" is bigger than \"120\". Convert data to the right type at the point where it enters your program.",
+  "howToPrevent": "Convert and validate data where it comes in (API responses, CSV files, form fields), so the rest of your code only sees real numbers. Add a test with inputs of different lengths, such as 8, 95 and 120. And when you sort, ask: does this change the caller's list?",
+  "whereItShowsUpAtWork": "APIs, CSV files, form inputs and URL query parameters all hand you numbers as strings. Sorting prices, ranking scores and comparing IDs are classic places this slips in, and it often passes review because small test data happens to work.",
+  "bonusTests": "A bonus test checks that building the leaderboard does not reorder the original players list. Sorting in place changes the caller's data, which causes confusing bugs elsewhere.",
+  "languages": {
+    "js": {
+      "buggy": "js/buggy.js",
+      "solution": "js/solution.js",
+      "tests": "js/tests.js",
+      "hints": [
+        "Read the failing test 'ranks 120 points above 95 points'. What order does it expect, and what order do you get? Then look at the test that passes (40, 70, 10). What is different about those numbers?",
+        "Log what the comparator receives: add console.log(typeof a.points, a.points, b.points) inside the sort function. What type are the points? Then try '95' < '120' in your head, or in the console.",
+        "In JavaScript, < on two strings compares them character by character, like words in a dictionary. '1' comes before '9', so '120' < '95'. Numbers compare by value. Your points arrive from the API as strings, so they need converting before you compare.",
+        "The comparator compares strings. Convert them first, for example Number(b.points) - Number(a.points). Also note that Array.prototype.sort changes the array in place: copy the list first, with [...players], if the caller's list should stay untouched."
+      ],
+      "reviewRules": [
+        {
+          "id": "converts-to-number",
+          "kind": "root-cause",
+          "pattern": "Number\\(|parseInt\\(|parseFloat\\(|\\+\\s*[ab]\\.points|Number\\.",
+          "matches": true,
+          "feedback": "You converted the points to numbers before comparing. That fixes the root cause: strings were being compared character by character. Nice."
+        },
+        {
+          "id": "still-compares-strings",
+          "kind": "symptom",
+          "pattern": "Number\\(|parseInt\\(|parseFloat\\(|\\+\\s*[ab]\\.points|Number\\.",
+          "matches": false,
+          "feedback": "Your code still compares the points without converting them. If it passes for these examples, try more inputs of different lengths to check you fixed the cause and not just the symptom."
+        },
+        {
+          "id": "copies-before-sort",
+          "kind": "bonus",
+          "pattern": "\\[\\.\\.\\.players\\]|players\\.slice\\(\\)|Array\\.from\\(players\\)|structuredClone",
+          "matches": true,
+          "feedback": "Bonus find: you copied the list before sorting, so the caller's data stays untouched. Spotting a side effect nobody reported is a real senior habit."
+        },
+        {
+          "id": "sort-mutates",
+          "kind": "tip",
+          "pattern": "\\[\\.\\.\\.players\\]|players\\.slice\\(\\)|Array\\.from\\(players\\)|structuredClone",
+          "matches": false,
+          "feedback": "Tip: Array.prototype.sort changes the original array. The bonus test checks that the caller's list stays in its original order. Try copying it first."
+        }
+      ]
+    },
+    "python": {
+      "buggy": "python/buggy.py",
+      "solution": "python/solution.py",
+      "tests": "python/tests.py",
+      "hints": [
+        "Read the failing test 'ranks 120 points above 95 points'. What order does it expect, and what order do you get? Then look at the test that passes (40, 70, 10). What is different about those numbers?",
+        "Print what the sort key returns: add print(repr(player['points'])) inside the key function, or use type(). What type are the points?",
+        "In Python, comparing two strings compares them character by character, like words in a dictionary. '1' comes before '9', so '120' < '95'. Numbers compare by value. Your points arrive from the API as strings, so they need converting before you sort.",
+        "The key function returns strings. Convert them: key=lambda p: int(p['points']). Also note that list.sort() changes the list in place; sorted() returns a new list and leaves the caller's list alone."
+      ],
+      "reviewRules": [
+        {
+          "id": "converts-to-number",
+          "kind": "root-cause",
+          "pattern": "int\\(|float\\(|Decimal\\(",
+          "matches": true,
+          "feedback": "You converted the points to numbers before comparing. That fixes the root cause: strings were being compared character by character. Nice."
+        },
+        {
+          "id": "still-compares-strings",
+          "kind": "symptom",
+          "pattern": "int\\(|float\\(|Decimal\\(",
+          "matches": false,
+          "feedback": "Your code still compares the points without converting them. If it passes for these examples, try more inputs of different lengths to check you fixed the cause and not just the symptom."
+        },
+        {
+          "id": "uses-sorted",
+          "kind": "bonus",
+          "pattern": "sorted\\(|players\\[:\\]|players\\.copy\\(\\)|list\\(players\\)",
+          "matches": true,
+          "feedback": "Bonus find: you sorted a copy, so the caller's list stays untouched. Spotting a side effect nobody reported is a real senior habit."
+        },
+        {
+          "id": "sort-mutates",
+          "kind": "tip",
+          "pattern": "sorted\\(|players\\[:\\]|players\\.copy\\(\\)|list\\(players\\)",
+          "matches": false,
+          "feedback": "Tip: list.sort() changes the original list. The bonus test checks that the caller's list keeps its original order. Try sorted() instead."
+        }
+      ]
+    }
+  }
+}

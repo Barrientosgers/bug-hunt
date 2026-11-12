@@ -2,5 +2,11 @@
   "semi": false,
   "singleQuote": true,
   "trailingComma": "all",
-  "printWidth": 90
+  "printWidth": 90,
+  "overrides": [
+    {
+      "files": "content/challenges/**/*.js",
+      "options": { "semi": true }
+    }
+  ]
 }

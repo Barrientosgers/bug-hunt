@@ -124,4 +124,4 @@ Encouraging, never shaming. Getting stuck is normal. Praise good debugging PROCE
 
 ## Commands
 
-`npm run dev` · `npm run build` · `npm run lint` · `npm run format:check` · `npm test` · `npm run verify` (placeholder until Phase 1)
+`npm run dev` · `npm run build` · `npm run lint` · `npm run format:check` · `npm test` · `npm run verify` (mutation check on every challenge)
