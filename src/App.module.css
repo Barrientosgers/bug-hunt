@@ -51,13 +51,59 @@
   text-transform: uppercase;
 }
 
-.editorPlaceholder {
+.editor {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: var(--space-3);
   height: 100%;
   min-height: 12rem;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.fileName {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+.codeArea {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.codeArea pre {
+  margin: 0;
+  min-height: 100%;
+}
+
+.badge {
+  margin-left: var(--space-3);
+  padding: 0.1rem var(--space-2);
+  font-size: 0.75rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.error {
+  margin: 0;
+  color: var(--fail);
+}
+
+.fatal {
+  max-width: 40rem;
+  margin: 4rem auto;
+  padding: 0 var(--space-4);
 }
 
 .actions {
