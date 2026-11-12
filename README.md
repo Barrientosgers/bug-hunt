@@ -9,13 +9,14 @@ form a hypothesis, fix the code, and learn a debugging skill along the way.
 
 ## Scripts
 
-| Command                | What it does                   |
-| ---------------------- | ------------------------------ |
-| `npm run dev`          | Start the dev server           |
-| `npm run build`        | Type-check and build           |
-| `npm run lint`         | Lint with ESLint               |
-| `npm run format:check` | Check formatting with Prettier |
-| `npm test`             | Run unit tests with Vitest     |
+| Command                | What it does                                                               |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`          | Start the dev server                                                       |
+| `npm run build`        | Type-check and build                                                       |
+| `npm run lint`         | Lint with ESLint                                                           |
+| `npm run format:check` | Check formatting with Prettier                                             |
+| `npm test`             | Run unit tests with Vitest                                                 |
+| `npm run verify`       | Mutation check: every challenge's solution passes and its buggy code fails |
 
 ## A note on flags
 
