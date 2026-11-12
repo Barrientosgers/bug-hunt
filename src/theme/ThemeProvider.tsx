@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { readStoredTheme, resolveTheme, saveTheme, type Theme } from './theme.ts'
+import { ThemeContext } from './themeContext.ts'
 
 function currentTheme(): Theme {
   // index.html sets data-theme before the first paint; fall back to resolving it here.
@@ -9,7 +10,8 @@ function currentTheme(): Theme {
   return resolveTheme(readStoredTheme(), systemPrefersLight)
 }
 
-export function useTheme() {
+/** One shared theme for the whole app, so the page and the code editor always agree. */
+export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(currentTheme)
 
   const toggleTheme = useCallback(() => {
@@ -19,5 +21,6 @@ export function useTheme() {
     setTheme(next)
   }, [theme])
 
-  return { theme, toggleTheme }
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme])
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
