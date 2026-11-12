@@ -20,6 +20,28 @@ import sys
 TEST_FILE = "<tests>"
 
 
+class _CappedWriter:
+    """Collects printed text but stops growing past a limit (see the timeout in the UI)."""
+
+    LIMIT = 100000
+
+    def __init__(self):
+        self.parts = []
+        self.size = 0
+
+    def write(self, text):
+        if self.size < self.LIMIT:
+            self.parts.append(text)
+            self.size += len(text)
+        return len(text)
+
+    def flush(self):
+        pass
+
+    def getvalue(self):
+        return "".join(self.parts)
+
+
 def _safe_repr(value):
     try:
         return repr(value)
@@ -70,7 +92,7 @@ def _explain_assertion(error, test_lines):
 def run_tests(user_code, test_code):
     result = {"tests": [], "console": []}
     namespace = {"__name__": "bughunt_sandbox"}
-    captured = io.StringIO()
+    captured = _CappedWriter()
 
     with contextlib.redirect_stdout(captured):
         try:

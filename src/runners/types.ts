@@ -16,4 +16,6 @@ export interface RunResult {
   console: string[]
   /** Set when the code could not run at all (e.g. a syntax error). */
   error?: string
+  /** True when we stopped the code because it ran too long (e.g. an infinite loop). */
+  timedOut?: boolean
 }

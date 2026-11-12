@@ -73,6 +73,8 @@ function expect(got: unknown) {
   }
 }
 
+const MAX_OUTPUT_LINES = 1000
+
 interface RegisteredTest {
   name: string
   bonus: boolean
@@ -94,11 +96,12 @@ export async function runJsTests(userCode: string, testCode: string): Promise<Ru
     registered.push({ name, bonus: true, fn })
   }
 
-  const fakeConsole = {
-    log: (...args: unknown[]) => output.push(args.map(formatLogArg).join(' ')),
-    warn: (...args: unknown[]) => output.push(args.map(formatLogArg).join(' ')),
-    error: (...args: unknown[]) => output.push(args.map(formatLogArg).join(' ')),
+  // Cap the output so a loop that logs forever cannot eat all the memory before the
+  // timeout fires.
+  const write = (...args: unknown[]) => {
+    if (output.length < MAX_OUTPUT_LINES) output.push(args.map(formatLogArg).join(' '))
   }
+  const fakeConsole = { log: write, warn: write, error: write }
 
   try {
     // User code and test code share one scope, so tests can call the player's functions.
