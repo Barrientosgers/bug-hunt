@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Bubble } from './components/Bubble.tsx'
 import { CodeEditor } from './components/CodeEditor.tsx'
 import { ConsoleOutput } from './components/ConsoleOutput.tsx'
+import { DebugJournal } from './components/DebugJournal.tsx'
 import { GameLayout } from './components/GameLayout.tsx'
 import { LanguageSelect } from './components/LanguageSelect.tsx'
 import { QuestBar } from './components/QuestBar.tsx'
 import { Tabs } from './components/Tabs.tsx'
 import { TestResults } from './components/TestResults.tsx'
+import { TimerBadge } from './components/TimerBadge.tsx'
 import { listChallenges } from './content/loader.ts'
 import {
   LANGUAGE_LABELS,
@@ -18,7 +20,9 @@ import { pickLanguage, readSavedLanguage, saveLanguage } from './game/language.t
 import { headline, summarize } from './game/results.ts'
 import { useChallengeFiles } from './game/useChallenge.ts'
 import { useCode } from './game/useCode.ts'
+import { useJournal } from './game/useJournal.ts'
 import { useRunTests } from './game/useRunTests.ts'
+import { useTimer, useTimerHidden } from './game/useTimer.ts'
 import { ThemeToggle } from './theme/ThemeToggle.tsx'
 import { APP_TITLE } from './config'
 import styles from './App.module.css'
@@ -45,7 +49,7 @@ export default function App() {
       </main>
     )
   }
-  return <Game challenge={loaded.challenge} />
+  return <Game key={loaded.challenge.id} challenge={loaded.challenge} />
 }
 
 function Game({ challenge }: { challenge: Challenge }) {
@@ -60,15 +64,20 @@ function Game({ challenge }: { challenge: Challenge }) {
   const tests = state.status === 'ready' ? state.files.tests : undefined
 
   const runKey = `${challenge.id}:${language}`
-  const { running, lastRun, run } = useRunTests()
+  const { running, lastRun, runs, run } = useRunTests()
+  const journal = useJournal(challenge.id, runs)
   const [resultsTab, setResultsTab] = useState('tests')
   // Only show results that belong to the language the player is looking at.
   const current = lastRun?.key === runKey ? lastRun : null
   const summary = current ? summarize(current.result) : null
   const stale = current !== null && current.ranCode !== code
+  const solved = summary?.status === 'solved'
+  const timer = useTimer(challenge.id, language, journal.unlocked, solved)
+  const timerVisibility = useTimerHidden()
+  const questStep = solved ? 'review' : journal.unlocked ? 'debug' : 'journal'
 
   function runTests() {
-    if (code === undefined || tests === undefined) return
+    if (!journal.unlocked || code === undefined || tests === undefined) return
     setResultsTab('tests')
     void run(runKey, language, code, tests)
   }
@@ -107,6 +116,7 @@ function Game({ challenge }: { challenge: Challenge }) {
       <Bubble character="priya">
         <p>{challenge.briefing}</p>
       </Bubble>
+      <DebugJournal state={journal.state} onSave={journal.save} onSkip={journal.skip} />
     </>
   )
 
@@ -114,12 +124,29 @@ function Game({ challenge }: { challenge: Challenge }) {
     <div className={styles.editor}>
       <div className={styles.editorHeader}>
         <span className={styles.fileName}>{version?.fileName}</span>
+        <TimerBadge
+          elapsedMs={timer.elapsedMs}
+          hidden={timerVisibility.hidden}
+          onToggle={timerVisibility.toggle}
+          running={timer.running}
+        />
         <LanguageSelect
           languages={available}
           value={language}
           onChange={changeLanguage}
         />
       </div>
+      {!journal.unlocked && (
+        <p role="status" className={styles.lockBanner}>
+          <span>
+            <span aria-hidden="true">✍️ </span>Write your hypothesis in the Debug journal
+            first (it is in the Ticket panel) for +2 XP, or skip it.
+          </span>
+          <button type="button" onClick={journal.skip}>
+            Skip the journal
+          </button>
+        </p>
+      )}
       <div className={styles.codeArea}>
         {state.status === 'loading' && <p className={styles.muted}>Loading the code…</p>}
         {state.status === 'error' && (
@@ -134,6 +161,7 @@ function Game({ challenge }: { challenge: Challenge }) {
             value={code}
             onChange={setCode}
             onRun={runTests}
+            readOnly={!journal.unlocked}
           />
         )}
       </div>
@@ -142,7 +170,9 @@ function Game({ challenge }: { challenge: Challenge }) {
           type="button"
           className={styles.primary}
           onClick={runTests}
-          disabled={running || code === undefined || tests === undefined}
+          disabled={
+            !journal.unlocked || running || code === undefined || tests === undefined
+          }
         >
           {running ? 'Running…' : '▶ Run tests'}
         </button>
@@ -183,15 +213,6 @@ function Game({ challenge }: { challenge: Challenge }) {
           label: 'Console',
           content: <ConsoleOutput lines={current ? current.result.console : null} />,
         },
-        {
-          id: 'journal',
-          label: 'Journal',
-          content: (
-            <p className={styles.muted}>
-              “I think the bug is in ___ because ___” (coming in step 3e)
-            </p>
-          ),
-        },
       ]}
     />
   )
@@ -205,7 +226,7 @@ function Game({ challenge }: { challenge: Challenge }) {
         <h1 className={styles.logo}>
           <span aria-hidden="true">🐞</span> {APP_TITLE}
         </h1>
-        <QuestBar current="debug" />
+        <QuestBar current={questStep} />
         <div className={styles.right}>
           <span className={styles.rank}>Rank: Intern</span>
           <ThemeToggle />
