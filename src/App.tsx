@@ -3,6 +3,7 @@ import { Bubble } from './components/Bubble.tsx'
 import { CodeEditor } from './components/CodeEditor.tsx'
 import { ConsoleOutput } from './components/ConsoleOutput.tsx'
 import { DebugJournal } from './components/DebugJournal.tsx'
+import { HintLadder } from './components/HintLadder.tsx'
 import { GameLayout } from './components/GameLayout.tsx'
 import { LanguageSelect } from './components/LanguageSelect.tsx'
 import { QuestBar } from './components/QuestBar.tsx'
@@ -17,9 +18,11 @@ import {
   type Language,
 } from './content/types.ts'
 import { pickLanguage, readSavedLanguage, saveLanguage } from './game/language.ts'
+import { HINT_COST, HINT_COUNT, needsConfirmation } from './game/hints.ts'
 import { headline, summarize } from './game/results.ts'
 import { useChallengeFiles } from './game/useChallenge.ts'
 import { useCode } from './game/useCode.ts'
+import { useHints } from './game/useHints.ts'
 import { useJournal } from './game/useJournal.ts'
 import { useRunTests } from './game/useRunTests.ts'
 import { useTimer, useTimerHidden } from './game/useTimer.ts'
@@ -66,6 +69,8 @@ function Game({ challenge }: { challenge: Challenge }) {
   const runKey = `${challenge.id}:${language}`
   const { running, lastRun, runs, run } = useRunTests()
   const journal = useJournal(challenge.id, runs)
+  const hints = useHints(challenge.id, language)
+  const [hintNotice, setHintNotice] = useState(false)
   const [resultsTab, setResultsTab] = useState('tests')
   // Only show results that belong to the language the player is looking at.
   const current = lastRun?.key === runKey ? lastRun : null
@@ -76,9 +81,26 @@ function Game({ challenge }: { challenge: Challenge }) {
   const timerVisibility = useTimerHidden()
   const questStep = solved ? 'review' : journal.unlocked ? 'debug' : 'journal'
 
+  function revealHint() {
+    const level = hints.nextLevel
+    if (level === null) return
+    if (
+      needsConfirmation(level) &&
+      !window.confirm(
+        'The last hint nearly gives away the answer. Want to try one more thing first?\n\nOK = show it anyway. Cancel = keep trying.',
+      )
+    ) {
+      return
+    }
+    hints.reveal()
+    setResultsTab('hints')
+    setHintNotice(true)
+  }
+
   function runTests() {
     if (!journal.unlocked || code === undefined || tests === undefined) return
     setResultsTab('tests')
+    setHintNotice(false)
     void run(runKey, language, code, tests)
   }
 
@@ -176,8 +198,10 @@ function Game({ challenge }: { challenge: Challenge }) {
         >
           {running ? 'Running…' : '▶ Run tests'}
         </button>
-        <button type="button" disabled>
-          💡 Hint (−2 XP)
+        <button type="button" onClick={revealHint} disabled={hints.nextLevel === null}>
+          {hints.nextLevel === null
+            ? '💡 All hints used'
+            : `💡 Hint ${hints.nextLevel} of ${HINT_COUNT} (−${HINT_COST} XP)`}
         </button>
         <button type="button" onClick={resetCode} disabled={!isEdited}>
           ↺ Reset code
@@ -186,9 +210,11 @@ function Game({ challenge }: { challenge: Challenge }) {
       <p role="status" className={styles.runStatus}>
         {running
           ? 'Running your code…'
-          : summary
-            ? `Last run: ${headline(summary)}${stale ? ' (before your latest edit)' : ''}`
-            : ''}
+          : hintNotice
+            ? `Hint ${hints.used} is ready: open Results › Hints.`
+            : summary
+              ? `Last run: ${headline(summary)}${stale ? ' (before your latest edit)' : ''}`
+              : ''}
       </p>
       <p className={styles.keyboardHelp}>
         Tip: Ctrl+Enter (Cmd+Enter on a Mac) runs the tests. Keyboard users: press Ctrl+M
@@ -207,6 +233,11 @@ function Game({ challenge }: { challenge: Challenge }) {
           id: 'tests',
           label: 'Tests',
           content: <TestResults summary={summary} running={running} stale={stale} />,
+        },
+        {
+          id: 'hints',
+          label: hints.used > 0 ? `Hints (${hints.used})` : 'Hints',
+          content: <HintLadder hints={version?.hints ?? []} used={hints.used} />,
         },
         {
           id: 'console',
