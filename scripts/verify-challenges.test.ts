@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { RunResult } from '../src/runners/types.ts'
 import { runPythonTests } from './run-python.ts'
-import { checkVersion, verifyAll } from './verify-challenges.ts'
+import { checkReview, checkVersion, verifyAll } from './verify-challenges.ts'
 
 const pass = (name: string, bonus = false) => ({ name, bonus, passed: true })
 const fail = (name: string, bonus = false) => ({
@@ -34,6 +34,58 @@ describe('checkVersion (the mutation check rules)', () => {
   it('rejects code that could not run', () => {
     const broken: RunResult = { tests: [], console: [], error: 'SyntaxError' }
     expect(checkVersion(broken, broken).length).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe('checkReview (the mentor content check)', () => {
+  const version = {
+    minimalChange: { maxLines: 2 },
+    reviewRules: [
+      {
+        id: 'fix',
+        kind: 'root-cause',
+        pattern: 'Number\\(',
+        matches: true,
+        feedback: 'x',
+      },
+      {
+        id: 'still-broken',
+        kind: 'symptom',
+        pattern: 'Number\\(',
+        matches: false,
+        feedback: 'x',
+      },
+    ],
+  } as const
+  const buggy = 'sort(a < b)\nreturn x'
+  const solution = 'sort(Number(a) < Number(b))\nreturn x'
+
+  it('accepts rules that fire on the right code', () => {
+    expect(
+      checkReview({ ...version, reviewRules: [...version.reviewRules] }, solution, buggy),
+    ).toEqual([])
+  })
+
+  it('catches a rule that fires on the wrong code', () => {
+    const rules = [{ ...version.reviewRules[0], pattern: 'sort' }, version.reviewRules[1]]
+    const problems = checkReview({ ...version, reviewRules: rules }, solution, buggy)
+    expect(problems.join()).toMatch(/"fix" should not fire on the buggy code/)
+  })
+
+  it('catches a solution that changes more lines than declared', () => {
+    const big = 'a\nb\nc\nd'
+    const problems = checkReview(
+      { ...version, reviewRules: [...version.reviewRules] },
+      big,
+      'x',
+    )
+    expect(problems.join()).toMatch(/maxLines/)
+  })
+
+  it('requires both a root-cause and a symptom rule', () => {
+    const problems = checkReview({ ...version, reviewRules: [] }, solution, buggy)
+    expect(problems.join()).toMatch(/"root-cause"/)
+    expect(problems.join()).toMatch(/"symptom"/)
   })
 })
 

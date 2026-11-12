@@ -1,6 +1,13 @@
 export type StorageGetter = () => Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
-const browserStorage: StorageGetter = () => window.localStorage
+// `globalThis` (not `window`) so this file also type-checks where there is no browser,
+// e.g. when the Node-side tests import code that uses it. A missing localStorage throws
+// here and is handled like blocked storage by the helpers below.
+const browserStorage: StorageGetter = () => {
+  const storage = (globalThis as { localStorage?: Storage }).localStorage
+  if (!storage) throw new Error('localStorage is not available')
+  return storage
+}
 
 /**
  * localStorage can throw (private windows, blocked site data) or be missing, so every

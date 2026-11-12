@@ -26,6 +26,14 @@ function validateLanguage(language: string, value: unknown, errors: string[]): v
   for (const key of ['buggy', 'solution', 'tests'] as const) {
     if (!isNonEmptyString(value[key])) errors.push(`${where}.${key} must be a file path`)
   }
+  const minimal = value.minimalChange
+  if (
+    !isObject(minimal) ||
+    !Number.isInteger(minimal.maxLines) ||
+    (minimal.maxLines as number) < 1
+  ) {
+    errors.push(`${where}.minimalChange.maxLines must be a positive integer`)
+  }
   const hints = value.hints
   if (!Array.isArray(hints) || hints.length !== 4 || !hints.every(isNonEmptyString)) {
     errors.push(`${where}.hints must be exactly 4 non-empty strings`)
@@ -93,6 +101,20 @@ export function validateChallenge(input: unknown): string[] {
           isNonEmptyString(item.content)
         if (!ok) errors.push(`evidence[${index}] needs a valid type, title and content`)
       })
+    }
+  }
+  const hypothesis = input.hypothesis
+  if (!isObject(hypothesis)) {
+    errors.push('hypothesis is required')
+  } else {
+    for (const key of ['where', 'why'] as const) {
+      const words = hypothesis[key]
+      if (!Array.isArray(words) || words.length === 0 || !words.every(isNonEmptyString)) {
+        errors.push(`hypothesis.${key} must be a non-empty list of keywords`)
+      }
+    }
+    for (const key of ['good', 'partial', 'miss', 'skipped'] as const) {
+      if (!isNonEmptyString(hypothesis[key])) errors.push(`hypothesis.${key} is required`)
     }
   }
   const specific = input.languageSpecific

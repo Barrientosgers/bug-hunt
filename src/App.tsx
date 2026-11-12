@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Bubble } from './components/Bubble.tsx'
 import { CodeEditor } from './components/CodeEditor.tsx'
+import { CodeReview } from './components/CodeReview.tsx'
 import { ConsoleOutput } from './components/ConsoleOutput.tsx'
 import { DebugJournal } from './components/DebugJournal.tsx'
 import { HintLadder } from './components/HintLadder.tsx'
@@ -22,6 +23,7 @@ import { pickLanguage, readSavedLanguage, saveLanguage } from './game/language.t
 import { HINT_COST, HINT_COUNT, needsConfirmation } from './game/hints.ts'
 import { headline, summarize } from './game/results.ts'
 import { useChallengeFiles } from './game/useChallenge.ts'
+import { buildReview } from './mentor/review.ts'
 import { useCode } from './game/useCode.ts'
 import { useHints } from './game/useHints.ts'
 import { useJournal } from './game/useJournal.ts'
@@ -88,6 +90,19 @@ function Game({ challenge }: { challenge: Challenge }) {
   const timerVisibility = useTimerHidden()
   const keyHistory = history.filter((entry) => entry.key === runKey)
   const engaged = engagedAt?.key === runKey ? engagedAt : null
+  const review =
+    summary?.status === 'solved' && current && starter !== undefined
+      ? buildReview({
+          challenge,
+          language,
+          starterCode: starter,
+          finalCode: current.ranCode,
+          summary,
+          journal: journal.state,
+          hintsUsed: hints.used,
+          runs: keyHistory.length,
+        })
+      : null
   const questStep = solved ? 'review' : journal.unlocked ? 'debug' : 'journal'
 
   function markEngaged() {
@@ -115,7 +130,9 @@ function Game({ challenge }: { challenge: Challenge }) {
     if (!journal.unlocked || code === undefined || tests === undefined) return
     setResultsTab('tests')
     setHintNotice(false)
-    void run(runKey, language, code, tests, timer.elapsedMs)
+    void run(runKey, language, code, tests, timer.elapsedMs).then((didSolve) => {
+      if (didSolve) setResultsTab('review')
+    })
   }
 
   function resetCode() {
@@ -248,10 +265,12 @@ function Game({ challenge }: { challenge: Challenge }) {
     </div>
   )
 
+  // The Review tab only exists once the bug is solved; fall back to Tests if it goes away.
+  const openTab = resultsTab === 'review' && !review ? 'tests' : resultsTab
   const results = (
     <Tabs
       label="Results"
-      selectedId={resultsTab}
+      selectedId={openTab}
       onSelect={setResultsTab}
       tabs={[
         {
@@ -264,6 +283,15 @@ function Game({ challenge }: { challenge: Challenge }) {
           label: hints.used > 0 ? `Hints (${hints.used})` : 'Hints',
           content: <HintLadder hints={version?.hints ?? []} used={hints.used} />,
         },
+        ...(review
+          ? [
+              {
+                id: 'review',
+                label: 'Review',
+                content: <CodeReview review={review} />,
+              },
+            ]
+          : []),
         {
           id: 'console',
           label: 'Console',

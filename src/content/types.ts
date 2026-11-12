@@ -50,6 +50,25 @@ export interface ReviewRule {
   feedback: string
 }
 
+/**
+ * Used to give feedback on the player's journal hypothesis. Matching is by keywords
+ * (case-insensitive), so it is crude by design: the feedback never grades the player.
+ */
+export interface Hypothesis {
+  /** Words that point at WHERE the bug is (e.g. "sort"). */
+  where: string[]
+  /** Words that point at WHY it happens (e.g. "string"). */
+  why: string[]
+  /** Feedback when both where and why were mentioned. */
+  good: string
+  /** Feedback when only one of them was mentioned. */
+  partial: string
+  /** Feedback when neither was. Must stay encouraging. */
+  miss: string
+  /** Feedback when the player skipped the journal. */
+  skipped: string
+}
+
 export interface LanguageVersion {
   /** The file name shown on the editor tab, e.g. "leaderboard.js". */
   fileName: string
@@ -60,6 +79,8 @@ export interface LanguageVersion {
   /** Exactly 4, following the hint ladder: read the test, inspect data, concept, full. */
   hints: string[]
   reviewRules: ReviewRule[]
+  /** The most lines a good fix should change. The reference solution must be within it. */
+  minimalChange: { maxLines: number }
 }
 
 export interface Challenge {
@@ -83,5 +104,6 @@ export interface Challenge {
   howToPrevent: string
   whereItShowsUpAtWork: string
   bonusTests: string
+  hypothesis: Hypothesis
   languages: Partial<Record<Language, LanguageVersion>>
 }

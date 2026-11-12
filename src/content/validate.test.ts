@@ -65,4 +65,21 @@ describe('validateChallenge', () => {
       /^kind must be one of/,
     )
   })
+
+  it('requires a hypothesis with keywords and feedback', () => {
+    const bad = structuredClone(sample)
+    bad.hypothesis.where = []
+    bad.hypothesis.miss = ''
+    const errors = validateChallenge(bad)
+    expect(errors).toContain('hypothesis.where must be a non-empty list of keywords')
+    expect(errors).toContain('hypothesis.miss is required')
+  })
+
+  it('requires minimalChange.maxLines for each language', () => {
+    const bad = structuredClone(sample)
+    bad.languages.js.minimalChange.maxLines = 0
+    expect(validateChallenge(bad)).toContain(
+      'languages.js.minimalChange.maxLines must be a positive integer',
+    )
+  })
 })
