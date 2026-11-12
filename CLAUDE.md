@@ -122,6 +122,26 @@ Encouraging, never shaming. Getting stuck is normal. Praise good debugging PROCE
 - Security Hunt track (OWASP Top 10 vulnerabilities to find and patch)
 - Community-created challenges
 
+## Challenge types roadmap (after the MVP; keep the architecture ready)
+
+Real debugging is a loop: **Reproduce → Locate → Fix → Prevent**. The MVP only trains "Fix" (code bugs). Each new type trains another part of the loop and shares the mentor, hints, XP, flags and badges. Each `kind` gets its own screen and its own grader.
+
+- Format prep (small separate change, around Phase 3): add `kind` to `challenge.json` (default `"code"`) and an optional `evidence` field (logs, stack traces).
+- Order after the MVP, one phase each:
+  1. Warm-ups: 30-second "what does this print?" puzzles (daily habit, keeps streaks alive)
+  2. Code Review Mode: Priya sends a small PR; the player clicks the bad line and explains why
+  3. QA Mode + Trace Mode: a sandboxed iframe with a fake Snackr page; the player writes a bug report, then traces the wrong function with a simulated DevTools panel (console, network, call stack)
+  4. Bisect Mode: a mini git history; find the commit that broke it
+  5. UX and accessibility bugs (contrast, missing labels, double-submit, focus traps)
+  6. Data and SQL bugs (JSON/CSV with the existing runners; SQL via sql.js in a Worker, same pattern as Pyodide)
+
+### Content principles
+
+- Challenges are authored (fictional Snackr bugs), written with AI assistance and reviewed by the owner. Verified by the mutation check. The README should say openly that challenges are written with AI assistance.
+- Quality over quantity; early players must be able to win; every challenge ends with one memorable sentence.
+- "Inspired by a real bug" cards (e.g. Mars Climate Orbiter unit mix-up, Y2K two-digit years, Knight Capital deployment) shown after solving, as part of "where this shows up at work". Fictional code, but only facts that are verified accurate.
+- Real bugs from open-source projects stay a post-launch option (see "Real-world replays"), trimmed to small self-contained versions, labeled as real, with license credit.
+
 ## Commands
 
 `npm run dev` · `npm run build` · `npm run lint` · `npm run format:check` · `npm test` · `npm run verify` (mutation check on every challenge)
