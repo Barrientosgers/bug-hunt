@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Bubble } from './components/Bubble.tsx'
 import { CodeEditor } from './components/CodeEditor.tsx'
+import { ConsoleOutput } from './components/ConsoleOutput.tsx'
 import { GameLayout } from './components/GameLayout.tsx'
 import { LanguageSelect } from './components/LanguageSelect.tsx'
 import { QuestBar } from './components/QuestBar.tsx'
 import { Tabs } from './components/Tabs.tsx'
+import { TestResults } from './components/TestResults.tsx'
 import { listChallenges } from './content/loader.ts'
 import {
   LANGUAGE_LABELS,
@@ -12,10 +14,11 @@ import {
   type Challenge,
   type Language,
 } from './content/types.ts'
-import { DevRunnerDemo } from './DevRunnerDemo.tsx'
 import { pickLanguage, readSavedLanguage, saveLanguage } from './game/language.ts'
+import { headline, summarize } from './game/results.ts'
 import { useChallengeFiles } from './game/useChallenge.ts'
 import { useCode } from './game/useCode.ts'
+import { useRunTests } from './game/useRunTests.ts'
 import { ThemeToggle } from './theme/ThemeToggle.tsx'
 import { APP_TITLE } from './config'
 import styles from './App.module.css'
@@ -54,6 +57,21 @@ function Game({ challenge }: { challenge: Challenge }) {
   const state = useChallengeFiles(challenge, language)
   const starter = state.status === 'ready' ? state.files.code : undefined
   const { code, setCode, reset, isEdited } = useCode(challenge.id, language, starter)
+  const tests = state.status === 'ready' ? state.files.tests : undefined
+
+  const runKey = `${challenge.id}:${language}`
+  const { running, lastRun, run } = useRunTests()
+  const [resultsTab, setResultsTab] = useState('tests')
+  // Only show results that belong to the language the player is looking at.
+  const current = lastRun?.key === runKey ? lastRun : null
+  const summary = current ? summarize(current.result) : null
+  const stale = current !== null && current.ranCode !== code
+
+  function runTests() {
+    if (code === undefined || tests === undefined) return
+    setResultsTab('tests')
+    void run(runKey, language, code, tests)
+  }
 
   function resetCode() {
     if (
@@ -115,12 +133,18 @@ function Game({ challenge }: { challenge: Challenge }) {
             language={language}
             value={code}
             onChange={setCode}
+            onRun={runTests}
           />
         )}
       </div>
       <div className={styles.actions}>
-        <button type="button" className={styles.primary} disabled>
-          ▶ Run tests
+        <button
+          type="button"
+          className={styles.primary}
+          onClick={runTests}
+          disabled={running || code === undefined || tests === undefined}
+        >
+          {running ? 'Running…' : '▶ Run tests'}
         </button>
         <button type="button" disabled>
           💡 Hint (−2 XP)
@@ -129,9 +153,16 @@ function Game({ challenge }: { challenge: Challenge }) {
           ↺ Reset code
         </button>
       </div>
+      <p role="status" className={styles.runStatus}>
+        {running
+          ? 'Running your code…'
+          : summary
+            ? `Last run: ${headline(summary)}${stale ? ' (before your latest edit)' : ''}`
+            : ''}
+      </p>
       <p className={styles.keyboardHelp}>
-        Keyboard users: press Ctrl+M (Ctrl+Shift+M on a Mac) to let the Tab key move focus
-        out of the editor.
+        Tip: Ctrl+Enter (Cmd+Enter on a Mac) runs the tests. Keyboard users: press Ctrl+M
+        (Ctrl+Shift+M on a Mac) to let the Tab key move focus out of the editor.
       </p>
     </div>
   )
@@ -139,29 +170,25 @@ function Game({ challenge }: { challenge: Challenge }) {
   const results = (
     <Tabs
       label="Results"
+      selectedId={resultsTab}
+      onSelect={setResultsTab}
       tabs={[
         {
           id: 'tests',
           label: 'Tests',
-          content: (
-            <DevRunnerDemo
-              language={language}
-              code={code}
-              tests={state.status === 'ready' ? state.files.tests : undefined}
-            />
-          ),
+          content: <TestResults summary={summary} running={running} stale={stale} />,
         },
         {
           id: 'console',
           label: 'Console',
-          content: <p className={styles.muted}>Nothing printed yet.</p>,
+          content: <ConsoleOutput lines={current ? current.result.console : null} />,
         },
         {
           id: 'journal',
           label: 'Journal',
           content: (
             <p className={styles.muted}>
-              “I think the bug is in ___ because ___” (coming in step 5)
+              “I think the bug is in ___ because ___” (coming in step 3e)
             </p>
           ),
         },

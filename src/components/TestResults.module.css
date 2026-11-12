@@ -1,0 +1,131 @@
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.headline {
+  margin: 0 0 var(--space-3);
+  font-size: 1.05rem;
+}
+
+.headline[data-status='solved'] {
+  color: var(--pass);
+}
+
+.headline[data-status='failing'],
+.headline[data-status='error'],
+.headline[data-status='timeout'] {
+  color: var(--text);
+}
+
+.stale {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  color: var(--warn);
+  border: 1px dashed var(--warn);
+  border-radius: var(--radius-sm);
+}
+
+.success {
+  margin: 0 0 var(--space-3);
+  color: var(--pass);
+}
+
+.callout {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--panel-2);
+  border-left: 4px solid var(--warn);
+  border-radius: var(--radius-sm);
+}
+
+.callout p {
+  margin: 0 0 var(--space-2);
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.message {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  padding: var(--space-2) var(--space-3);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.item[data-passed='true'] {
+  border-left-color: var(--pass);
+}
+
+.item[data-passed='false'] {
+  border-left-color: var(--fail);
+}
+
+.itemTitle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.status {
+  font-weight: 700;
+}
+
+.item[data-passed='true'] .status {
+  color: var(--pass);
+}
+
+.item[data-passed='false'] .status {
+  color: var(--fail);
+}
+
+.detail {
+  margin-top: var(--space-2);
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+}
+
+.compare dt {
+  color: var(--text-muted);
+}
+
+.compare dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.compare code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.bonus {
+  margin-top: var(--space-3);
+}
+
+.bonusTitle {
+  margin: 0 0 var(--space-2);
+}

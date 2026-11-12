@@ -1,4 +1,5 @@
-import Editor, { loader } from '@monaco-editor/react'
+import Editor, { loader, type OnMount } from '@monaco-editor/react'
+import { useEffect, useRef } from 'react'
 import type { Language } from '../content/types.ts'
 import { MONACO_CDN_PATH } from '../editorConfig.ts'
 import { useTheme } from '../theme/themeContext.ts'
@@ -15,10 +16,23 @@ interface CodeEditorProps {
   language: Language
   value: string
   onChange: (value: string) => void
+  /** Called when the player presses Ctrl+Enter (Cmd+Enter on a Mac). */
+  onRun: () => void
 }
 
-export function CodeEditor({ path, language, value, onChange }: CodeEditorProps) {
+export function CodeEditor({ path, language, value, onChange, onRun }: CodeEditorProps) {
   const { theme } = useTheme()
+  // The shortcut is registered once, so it reads the latest onRun through a ref.
+  const onRunRef = useRef(onRun)
+  useEffect(() => {
+    onRunRef.current = onRun
+  })
+
+  const handleMount: OnMount = (editor, monaco) => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () =>
+      onRunRef.current(),
+    )
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -28,6 +42,7 @@ export function CodeEditor({ path, language, value, onChange }: CodeEditorProps)
         value={value}
         theme={theme === 'dark' ? 'vs-dark' : 'light'}
         onChange={(next) => onChange(next ?? '')}
+        onMount={handleMount}
         loading={<p className={styles.loading}>Loading the editor…</p>}
         options={{
           ariaLabel: 'Code editor',

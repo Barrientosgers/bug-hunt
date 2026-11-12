@@ -12,6 +12,9 @@ interface TabsProps {
   label: string
   tabs: TabItem[]
   className?: string
+  /** Optional: control which tab is open from outside (e.g. jump to "Tests" after a run). */
+  selectedId?: string
+  onSelect?: (id: string) => void
 }
 
 /**
@@ -19,9 +22,14 @@ interface TabsProps {
  * to the first/last, and only the active tab is in the Tab order. Inactive panels stay
  * mounted but hidden, so things like the code editor keep their state.
  */
-export function Tabs({ label, tabs, className }: TabsProps) {
+export function Tabs({ label, tabs, className, selectedId, onSelect }: TabsProps) {
   const uid = useId()
-  const [activeId, setActiveId] = useState(tabs[0].id)
+  const [ownActiveId, setOwnActiveId] = useState(tabs[0].id)
+  const activeId = selectedId ?? ownActiveId
+  function setActiveId(id: string) {
+    setOwnActiveId(id)
+    onSelect?.(id)
+  }
   const buttons = useRef<(HTMLButtonElement | null)[]>([])
 
   function onKeyDown(event: KeyboardEvent) {

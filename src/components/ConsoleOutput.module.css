@@ -1,0 +1,14 @@
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.muted code {
+  font-family: var(--font-mono);
+}
+
+.output {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
