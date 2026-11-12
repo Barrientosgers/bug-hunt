@@ -81,7 +81,8 @@ export function TestResults({ summary, running, stale }: TestResultsProps) {
 
       {summary.status === 'solved' && (
         <p className={styles.success}>
-          All required tests pass. Nice work! Priya will review your fix in a later step.
+          All required tests pass. Nice work! Open the Review tab to see what Priya thinks
+          of your fix.
         </p>
       )}
 

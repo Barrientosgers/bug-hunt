@@ -36,8 +36,8 @@ export function useRunTests() {
       code: string,
       tests: string,
       atMs: number,
-    ) => {
-      if (busy.current) return
+    ): Promise<boolean> => {
+      if (busy.current) return false
       busy.current = true
       setRunning(true)
       try {
@@ -53,6 +53,7 @@ export function useRunTests() {
           runs: previous.runs + 1,
           failedRuns: previous.failedRuns + (solved ? 0 : 1),
         }))
+        return solved
       } finally {
         busy.current = false
         setRunning(false)
