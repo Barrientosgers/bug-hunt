@@ -1,60 +1,89 @@
-import { useState } from 'react'
-import buggyJs from '../content/challenges/001-leaderboard/js/buggy.js?raw'
-import solutionJs from '../content/challenges/001-leaderboard/js/solution.js?raw'
-import testsJs from '../content/challenges/001-leaderboard/js/tests.js?raw'
-import buggyPy from '../content/challenges/001-leaderboard/python/buggy.py?raw'
-import solutionPy from '../content/challenges/001-leaderboard/python/solution.py?raw'
-import testsPy from '../content/challenges/001-leaderboard/python/tests.py?raw'
-import type { Language } from './content/types.ts'
-import { getCodeRunner } from './runners/run-code.ts'
-import type { RunResult } from './runners/types.ts'
+import challenge from '../content/challenges/001-leaderboard/challenge.json'
+import { Bubble } from './components/Bubble.tsx'
+import { GameLayout } from './components/GameLayout.tsx'
+import { QuestBar } from './components/QuestBar.tsx'
+import { Tabs } from './components/Tabs.tsx'
+import type { Character } from './content/types.ts'
+import { DevRunnerDemo } from './DevRunnerDemo.tsx'
+import { ThemeToggle } from './theme/ThemeToggle.tsx'
 import { APP_TITLE } from './config'
+import styles from './App.module.css'
 
-// TEMPORARY Phase 2 demo: lets us try both runners in a real browser.
-// Phase 3 replaces this with the real game screen.
-const DEMOS: { label: string; language: Language; code: string; tests: string }[] = [
-  { label: 'JS: buggy code', language: 'js', code: buggyJs, tests: testsJs },
-  { label: 'JS: solution', language: 'js', code: solutionJs, tests: testsJs },
-  {
-    label: 'JS: infinite loop',
-    language: 'js',
-    code: 'while (true) {}',
-    tests: "test('x', () => {})",
-  },
-  { label: 'Python: buggy code', language: 'python', code: buggyPy, tests: testsPy },
-  { label: 'Python: solution', language: 'python', code: solutionPy, tests: testsPy },
-  {
-    label: 'Python: infinite loop',
-    language: 'python',
-    code: 'while True:\n    pass\n',
-    tests: 'def test_x():\n    assert True\n',
-  },
-]
-
+// Step 1 shell: the ticket text comes from the real challenge file, but nothing else is
+// wired up yet. Step 2 loads challenges properly, step 3 adds the editor.
 export default function App() {
-  const [result, setResult] = useState<RunResult | null>(null)
-  const [running, setRunning] = useState(false)
+  const ticket = (
+    <>
+      <h2 className={styles.ticketTitle}>
+        Ticket #{String(challenge.number).padStart(3, '0')}
+      </h2>
+      <Bubble character={challenge.character as Character}>
+        <p>
+          <strong>{challenge.ticket.subject}</strong>
+        </p>
+        <p>{challenge.ticket.body}</p>
+      </Bubble>
+      <Bubble character="priya">
+        <p>{challenge.briefing}</p>
+      </Bubble>
+    </>
+  )
 
-  async function run(demo: (typeof DEMOS)[number]) {
-    setRunning(true)
-    setResult(await getCodeRunner().run(demo.language, demo.code, demo.tests))
-    setRunning(false)
-  }
+  const editor = (
+    <div className={styles.editorPlaceholder}>
+      <p>The code editor arrives in step 3.</p>
+      <div className={styles.actions}>
+        <button type="button" className={styles.primary} disabled>
+          ▶ Run tests
+        </button>
+        <button type="button" disabled>
+          💡 Hint (−2 XP)
+        </button>
+      </div>
+    </div>
+  )
+
+  const results = (
+    <Tabs
+      label="Results"
+      tabs={[
+        { id: 'tests', label: 'Tests', content: <DevRunnerDemo /> },
+        {
+          id: 'console',
+          label: 'Console',
+          content: <p className={styles.muted}>Nothing printed yet.</p>,
+        },
+        {
+          id: 'journal',
+          label: 'Journal',
+          content: (
+            <p className={styles.muted}>
+              “I think the bug is in ___ because ___” (coming in step 5)
+            </p>
+          ),
+        },
+      ]}
+    />
+  )
 
   return (
-    <main>
-      <h1>{APP_TITLE}</h1>
-      <p>A daily debugging game for junior developers. Coming soon.</p>
-      <h2>Runner demo (temporary)</h2>
-      <p>
-        {DEMOS.map((demo) => (
-          <button key={demo.label} disabled={running} onClick={() => void run(demo)}>
-            {demo.label}
-          </button>
-        ))}
-      </p>
-      {running && <p>Running…</p>}
-      {result && <pre>{JSON.stringify(result, null, 2)}</pre>}
-    </main>
+    <div className={styles.app}>
+      <a className="skip-link" href="#main">
+        Skip to main content
+      </a>
+      <header className={styles.topbar}>
+        <h1 className={styles.logo}>
+          <span aria-hidden="true">🐞</span> {APP_TITLE}
+        </h1>
+        <QuestBar current="debug" />
+        <div className={styles.right}>
+          <span className={styles.rank}>Rank: Intern</span>
+          <ThemeToggle />
+        </div>
+      </header>
+      <main id="main" className={styles.main}>
+        <GameLayout ticket={ticket} editor={editor} results={results} />
+      </main>
+    </div>
   )
 }

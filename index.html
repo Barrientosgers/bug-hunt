@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bug Hunt</title>
+    <script>
+      // Pick the theme before the first paint, so there is no flash of the wrong theme.
+      // Same rules as src/theme/theme.ts: saved choice, then system setting, then dark.
+      ;(function () {
+        var theme = 'dark'
+        try {
+          var stored = localStorage.getItem('bughunt.theme')
+          if (stored === 'light' || stored === 'dark') theme = stored
+          else if (window.matchMedia('(prefers-color-scheme: light)').matches)
+            theme = 'light'
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', theme)
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
