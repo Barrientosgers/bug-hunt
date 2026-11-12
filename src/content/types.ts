@@ -1,6 +1,24 @@
 export const LANGUAGES = ['js', 'python'] as const
 export type Language = (typeof LANGUAGES)[number]
 
+export const LANGUAGE_LABELS: Record<Language, string> = {
+  js: 'JavaScript',
+  python: 'Python',
+}
+
+/** What kind of challenge this is. Only "code" exists for now; see the roadmap in CLAUDE.md. */
+export const KINDS = ['code'] as const
+export type ChallengeKind = (typeof KINDS)[number]
+
+export const EVIDENCE_TYPES = ['log', 'stack-trace', 'note'] as const
+
+/** Extra material attached to a ticket, e.g. a log excerpt or a stack trace. */
+export interface Evidence {
+  type: (typeof EVIDENCE_TYPES)[number]
+  title: string
+  content: string
+}
+
 export const CHARACTERS = ['priya', 'maya', 'leo'] as const
 export type Character = (typeof CHARACTERS)[number]
 
@@ -33,6 +51,8 @@ export interface ReviewRule {
 }
 
 export interface LanguageVersion {
+  /** The file name shown on the editor tab, e.g. "leaderboard.js". */
+  fileName: string
   /** Paths relative to the challenge folder. */
   buggy: string
   solution: string
@@ -47,6 +67,8 @@ export interface Challenge {
   id: string
   /** Ticket number, used in flags: BUGHUNT{snackr-001-js-xxxxxx}. */
   number: number
+  /** Defaults to "code" when missing. */
+  kind?: ChallengeKind
   title: string
   character: Character
   difficulty: Difficulty
@@ -54,6 +76,8 @@ export interface Challenge {
   /** Set for language-specific bugs; null for universal logic bugs. */
   languageSpecific: Language | null
   ticket: { subject: string; body: string }
+  /** Optional logs, stack traces or notes that come with the ticket. */
+  evidence?: Evidence[]
   briefing: string
   lesson: string
   howToPrevent: string
