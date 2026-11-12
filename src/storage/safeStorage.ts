@@ -1,4 +1,4 @@
-export type StorageGetter = () => Pick<Storage, 'getItem' | 'setItem'>
+export type StorageGetter = () => Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 const browserStorage: StorageGetter = () => window.localStorage
 
@@ -26,5 +26,16 @@ export function writeItem(
     getStorage().setItem(key, value)
   } catch {
     // Not being able to remember something is fine.
+  }
+}
+
+export function removeItem(
+  key: string,
+  getStorage: StorageGetter = browserStorage,
+): void {
+  try {
+    getStorage().removeItem(key)
+  } catch {
+    // Ignore: nothing to clean up if storage is unavailable.
   }
 }
