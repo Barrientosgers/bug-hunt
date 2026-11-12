@@ -6,6 +6,7 @@ import { DebugJournal } from './components/DebugJournal.tsx'
 import { HintLadder } from './components/HintLadder.tsx'
 import { GameLayout } from './components/GameLayout.tsx'
 import { LanguageSelect } from './components/LanguageSelect.tsx'
+import { MentorNudge } from './components/MentorNudge.tsx'
 import { QuestBar } from './components/QuestBar.tsx'
 import { Tabs } from './components/Tabs.tsx'
 import { TestResults } from './components/TestResults.tsx'
@@ -67,10 +68,16 @@ function Game({ challenge }: { challenge: Challenge }) {
   const tests = state.status === 'ready' ? state.files.tests : undefined
 
   const runKey = `${challenge.id}:${language}`
-  const { running, lastRun, runs, run } = useRunTests()
+  const { running, lastRun, history, runs, run } = useRunTests()
   const journal = useJournal(challenge.id, runs)
   const hints = useHints(challenge.id, language)
   const [hintNotice, setHintNotice] = useState(false)
+  // When the player last engaged with Priya (took a hint or dismissed her offer).
+  const [engagedAt, setEngagedAt] = useState<{
+    key: string
+    runIndex: number
+    ms: number
+  } | null>(null)
   const [resultsTab, setResultsTab] = useState('tests')
   // Only show results that belong to the language the player is looking at.
   const current = lastRun?.key === runKey ? lastRun : null
@@ -79,7 +86,13 @@ function Game({ challenge }: { challenge: Challenge }) {
   const solved = summary?.status === 'solved'
   const timer = useTimer(challenge.id, language, journal.unlocked, solved)
   const timerVisibility = useTimerHidden()
+  const keyHistory = history.filter((entry) => entry.key === runKey)
+  const engaged = engagedAt?.key === runKey ? engagedAt : null
   const questStep = solved ? 'review' : journal.unlocked ? 'debug' : 'journal'
+
+  function markEngaged() {
+    setEngagedAt({ key: runKey, runIndex: keyHistory.length, ms: timer.elapsedMs })
+  }
 
   function revealHint() {
     const level = hints.nextLevel
@@ -93,6 +106,7 @@ function Game({ challenge }: { challenge: Challenge }) {
       return
     }
     hints.reveal()
+    markEngaged()
     setResultsTab('hints')
     setHintNotice(true)
   }
@@ -101,7 +115,7 @@ function Game({ challenge }: { challenge: Challenge }) {
     if (!journal.unlocked || code === undefined || tests === undefined) return
     setResultsTab('tests')
     setHintNotice(false)
-    void run(runKey, language, code, tests)
+    void run(runKey, language, code, tests, timer.elapsedMs)
   }
 
   function resetCode() {
@@ -187,6 +201,17 @@ function Game({ challenge }: { challenge: Challenge }) {
           />
         )}
       </div>
+      <MentorNudge
+        key={runKey}
+        history={keyHistory}
+        elapsedMs={timer.elapsedMs}
+        engaged={engaged}
+        solved={solved}
+        unlocked={journal.unlocked}
+        nextHintLevel={hints.nextLevel}
+        onShowHint={revealHint}
+        onDismiss={markEngaged}
+      />
       <div className={styles.actions}>
         <button
           type="button"
