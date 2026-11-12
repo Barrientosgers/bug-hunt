@@ -16,6 +16,33 @@
   "howToPrevent": "Convert and validate data where it comes in (API responses, CSV files, form fields), so the rest of your code only sees real numbers. Add a test with inputs of different lengths, such as 8, 95 and 120. And when you sort, ask: does this change the caller's list?",
   "whereItShowsUpAtWork": "APIs, CSV files, form inputs and URL query parameters all hand you numbers as strings. Sorting prices, ranking scores and comparing IDs are classic places this slips in, and it often passes review because small test data happens to work.",
   "bonusTests": "A bonus test checks that building the leaderboard does not reorder the original players list. Sorting in place changes the caller's data, which causes confusing bugs elsewhere.",
+  "hypothesis": {
+    "where": [
+      "sort",
+      "top_players",
+      "topplayers",
+      "comparator",
+      "compar",
+      "rank",
+      "order"
+    ],
+    "why": [
+      "string",
+      "type",
+      "text",
+      "number",
+      "int(",
+      "convert",
+      "character",
+      "alphabet",
+      "lexico",
+      "digit"
+    ],
+    "good": "Your hypothesis pointed at the sorting and at strings versus numbers, which is exactly where the bug was. That is real detective work.",
+    "partial": "You were close: part of your hypothesis matched the real cause. Notice which part you got right, because that instinct is worth trusting.",
+    "miss": "Your hunch was different from the real cause, and that is completely normal. Ruling things out is how debugging works. Compare your guess with the root cause above to sharpen your instincts for next time.",
+    "skipped": "You skipped the journal this time. Next time, even a one-line guess helps you debug faster, because it gives you something to confirm or rule out."
+  },
   "languages": {
     "js": {
       "fileName": "leaderboard.js",
@@ -57,7 +84,10 @@
           "matches": false,
           "feedback": "Tip: Array.prototype.sort changes the original array. The bonus test checks that the caller's list stays in its original order. Try copying it first."
         }
-      ]
+      ],
+      "minimalChange": {
+        "maxLines": 4
+      }
     },
     "python": {
       "fileName": "leaderboard.py",
@@ -99,7 +129,10 @@
           "matches": false,
           "feedback": "Tip: list.sort() changes the original list. The bonus test checks that the caller's list keeps its original order. Try sorted() instead."
         }
-      ]
+      ],
+      "minimalChange": {
+        "maxLines": 4
+      }
     }
   }
 }

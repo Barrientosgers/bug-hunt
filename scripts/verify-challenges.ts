@@ -1,8 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { LANGUAGES, type Language } from '../src/content/types.ts'
+import { LANGUAGES, type Language, type LanguageVersion } from '../src/content/types.ts'
 import { parseChallenge } from '../src/content/validate.ts'
+import { diffStats } from '../src/mentor/diff.ts'
+import { ruleFires } from '../src/mentor/rules.ts'
 import { runJsTests } from '../src/runners/js-test-runner.ts'
 import type { RunResult } from '../src/runners/types.ts'
 import { runPythonTests } from './run-python.ts'
@@ -30,6 +32,49 @@ export function checkVersion(solution: RunResult, buggy: RunResult): string[] {
   if (buggy.error) problems.push(`buggy code did not run: ${buggy.error}`)
   else if (!buggy.tests.some((test) => !test.bonus && !test.passed)) {
     problems.push('buggy code passes every required test, so the bug is not detected')
+  }
+  return problems
+}
+
+/**
+ * Checks the mentor's content against the real code, so a broken review can never ship:
+ *  - on the reference solution, "root-cause" and "bonus" rules fire and the others do not;
+ *  - on the buggy code, it is the other way around;
+ *  - the solution's change fits within the declared `minimalChange.maxLines`.
+ */
+export function checkReview(
+  version: Pick<LanguageVersion, 'reviewRules' | 'minimalChange'>,
+  solutionCode: string,
+  buggyCode: string,
+): string[] {
+  const problems: string[] = []
+  const goodKinds = ['root-cause', 'bonus']
+
+  for (const kind of ['root-cause', 'symptom']) {
+    if (!version.reviewRules.some((rule) => rule.kind === kind)) {
+      problems.push(`needs at least one "${kind}" review rule`)
+    }
+  }
+  for (const rule of version.reviewRules) {
+    const isGood = goodKinds.includes(rule.kind)
+    if (ruleFires(rule, solutionCode) !== isGood) {
+      problems.push(
+        `review rule "${rule.id}" should ${isGood ? '' : 'not '}fire on the reference solution`,
+      )
+    }
+    if (ruleFires(rule, buggyCode) === isGood) {
+      problems.push(
+        `review rule "${rule.id}" should ${isGood ? 'not ' : ''}fire on the buggy code`,
+      )
+    }
+  }
+
+  const changed = diffStats(buggyCode, solutionCode).changed
+  if (changed < 1) problems.push('the solution is identical to the buggy code')
+  else if (changed > version.minimalChange.maxLines) {
+    problems.push(
+      `the solution changes ${changed} lines but minimalChange.maxLines is ${version.minimalChange.maxLines}`,
+    )
   }
   return problems
 }
@@ -66,10 +111,15 @@ export async function verifyChallenge(dir: string): Promise<ChallengeReport> {
     if (!version) continue
     const read = (file: string) => fs.readFileSync(path.join(dir, file), 'utf8')
     const tests = read(version.tests)
-    const solution = await run(language, read(version.solution), tests)
-    const buggy = await run(language, read(version.buggy), tests)
+    const solutionCode = read(version.solution)
+    const buggyCode = read(version.buggy)
+    const solution = await run(language, solutionCode, tests)
+    const buggy = await run(language, buggyCode, tests)
 
-    const problems = checkVersion(solution, buggy)
+    const problems = [
+      ...checkVersion(solution, buggy),
+      ...checkReview(version, solutionCode, buggyCode),
+    ]
     const failedRequired = buggy.tests.filter((t) => !t.bonus && !t.passed).length
     const failedBonus = buggy.tests.filter((t) => t.bonus && !t.passed).length
     report.summary.push(
