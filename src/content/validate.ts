@@ -1,4 +1,12 @@
-import { CHARACTERS, DIFFICULTIES, LANGUAGES, SKILLS, type Challenge } from './types.ts'
+import {
+  CHARACTERS,
+  DIFFICULTIES,
+  EVIDENCE_TYPES,
+  KINDS,
+  LANGUAGES,
+  SKILLS,
+  type Challenge,
+} from './types.ts'
 
 type Json = Record<string, unknown>
 
@@ -14,6 +22,7 @@ function validateLanguage(language: string, value: unknown, errors: string[]): v
     errors.push(`${where} must be an object`)
     return
   }
+  if (!isNonEmptyString(value.fileName)) errors.push(`${where}.fileName is required`)
   for (const key of ['buggy', 'solution', 'tests'] as const) {
     if (!isNonEmptyString(value[key])) errors.push(`${where}.${key} must be a file path`)
   }
@@ -68,6 +77,23 @@ export function validateChallenge(input: unknown): string[] {
   }
   if (!(SKILLS as readonly unknown[]).includes(input.skill)) {
     errors.push(`skill must be one of: ${SKILLS.join(', ')}`)
+  }
+  if (input.kind !== undefined && !(KINDS as readonly unknown[]).includes(input.kind)) {
+    errors.push(`kind must be one of: ${KINDS.join(', ')}`)
+  }
+  if (input.evidence !== undefined) {
+    if (!Array.isArray(input.evidence)) {
+      errors.push('evidence must be an array')
+    } else {
+      input.evidence.forEach((item: unknown, index: number) => {
+        const ok =
+          isObject(item) &&
+          (EVIDENCE_TYPES as readonly unknown[]).includes(item.type) &&
+          isNonEmptyString(item.title) &&
+          isNonEmptyString(item.content)
+        if (!ok) errors.push(`evidence[${index}] needs a valid type, title and content`)
+      })
+    }
   }
   const specific = input.languageSpecific
   if (specific !== null && !(LANGUAGES as readonly unknown[]).includes(specific)) {

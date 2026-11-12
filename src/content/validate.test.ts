@@ -41,4 +41,28 @@ describe('validateChallenge', () => {
     }
     expect(validateChallenge(bad).join()).toMatch(/version is missing/)
   })
+
+  it('requires a fileName for each language', () => {
+    const bad = structuredClone(sample)
+    bad.languages.js.fileName = ''
+    expect(validateChallenge(bad)).toContain('languages.js.fileName is required')
+  })
+
+  it('accepts valid evidence and rejects malformed evidence', () => {
+    const good = {
+      ...sample,
+      evidence: [{ type: 'log', title: 'Server log', content: 'GET /leaderboard 200' }],
+    }
+    expect(validateChallenge(good)).toEqual([])
+    const bad = { ...sample, evidence: [{ type: 'video', title: '', content: '' }] }
+    expect(validateChallenge(bad)).toContain(
+      'evidence[0] needs a valid type, title and content',
+    )
+  })
+
+  it('rejects an unknown kind', () => {
+    expect(validateChallenge({ ...sample, kind: 'quiz' })[0]).toMatch(
+      /^kind must be one of/,
+    )
+  })
 })

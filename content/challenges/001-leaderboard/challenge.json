@@ -1,6 +1,7 @@
 {
   "id": "001-leaderboard",
   "number": 1,
+  "kind": "code",
   "title": "The leaderboard is in the wrong order",
   "character": "leo",
   "difficulty": "easy",
@@ -17,6 +18,7 @@
   "bonusTests": "A bonus test checks that building the leaderboard does not reorder the original players list. Sorting in place changes the caller's data, which causes confusing bugs elsewhere.",
   "languages": {
     "js": {
+      "fileName": "leaderboard.js",
       "buggy": "js/buggy.js",
       "solution": "js/solution.js",
       "tests": "js/tests.js",
@@ -58,6 +60,7 @@
       ]
     },
     "python": {
+      "fileName": "leaderboard.py",
       "buggy": "python/buggy.py",
       "solution": "python/solution.py",
       "tests": "python/tests.py",
