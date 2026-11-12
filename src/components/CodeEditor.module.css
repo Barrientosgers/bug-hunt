@@ -1,0 +1,13 @@
+.wrapper {
+  height: 100%;
+  min-height: 14rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.loading {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--text-muted);
+}

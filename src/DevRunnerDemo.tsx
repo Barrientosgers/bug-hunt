@@ -39,7 +39,7 @@ export function DevRunnerDemo({ language, code, tests }: DevRunnerDemoProps) {
           disabled={running || !ready}
           onClick={() => void run(code ?? '', tests ?? '')}
         >
-          Run starter code
+          Run my code
         </button>{' '}
         <button
           disabled={running}

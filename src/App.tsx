@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Bubble } from './components/Bubble.tsx'
+import { CodeEditor } from './components/CodeEditor.tsx'
 import { GameLayout } from './components/GameLayout.tsx'
 import { LanguageSelect } from './components/LanguageSelect.tsx'
 import { QuestBar } from './components/QuestBar.tsx'
@@ -14,6 +15,7 @@ import {
 import { DevRunnerDemo } from './DevRunnerDemo.tsx'
 import { pickLanguage, readSavedLanguage, saveLanguage } from './game/language.ts'
 import { useChallengeFiles } from './game/useChallenge.ts'
+import { useCode } from './game/useCode.ts'
 import { ThemeToggle } from './theme/ThemeToggle.tsx'
 import { APP_TITLE } from './config'
 import styles from './App.module.css'
@@ -50,6 +52,18 @@ function Game({ challenge }: { challenge: Challenge }) {
   )
   const version = challenge.languages[language]
   const state = useChallengeFiles(challenge, language)
+  const starter = state.status === 'ready' ? state.files.code : undefined
+  const { code, setCode, reset, isEdited } = useCode(challenge.id, language, starter)
+
+  function resetCode() {
+    if (
+      window.confirm(
+        'Reset your code back to the starter code? Your changes will be lost.',
+      )
+    ) {
+      reset()
+    }
+  }
 
   function changeLanguage(next: Language) {
     setLanguage(next)
@@ -95,10 +109,13 @@ function Game({ challenge }: { challenge: Challenge }) {
             Could not load the code. {state.message}
           </p>
         )}
-        {state.status === 'ready' && (
-          <pre aria-label="Starter code (read-only until the editor arrives in step 3c)">
-            <code>{state.files.code}</code>
-          </pre>
+        {state.status === 'ready' && code !== undefined && (
+          <CodeEditor
+            path={`${challenge.id}/${version?.fileName}`}
+            language={language}
+            value={code}
+            onChange={setCode}
+          />
         )}
       </div>
       <div className={styles.actions}>
@@ -108,7 +125,14 @@ function Game({ challenge }: { challenge: Challenge }) {
         <button type="button" disabled>
           💡 Hint (−2 XP)
         </button>
+        <button type="button" onClick={resetCode} disabled={!isEdited}>
+          ↺ Reset code
+        </button>
       </div>
+      <p className={styles.keyboardHelp}>
+        Keyboard users: press Ctrl+M (Ctrl+Shift+M on a Mac) to let the Tab key move focus
+        out of the editor.
+      </p>
     </div>
   )
 
@@ -122,7 +146,7 @@ function Game({ challenge }: { challenge: Challenge }) {
           content: (
             <DevRunnerDemo
               language={language}
-              code={state.status === 'ready' ? state.files.code : undefined}
+              code={code}
               tests={state.status === 'ready' ? state.files.tests : undefined}
             />
           ),
