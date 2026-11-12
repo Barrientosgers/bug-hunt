@@ -1,0 +1,45 @@
+.desktop {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  grid-template-rows: minmax(260px, 1fr) minmax(220px, 42%);
+  grid-template-areas:
+    'ticket editor'
+    'ticket results';
+  gap: var(--space-4);
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-4);
+}
+
+.pane {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  padding: var(--space-4);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.ticket {
+  grid-area: ticket;
+}
+.editor {
+  grid-area: editor;
+}
+.results {
+  grid-area: results;
+  padding: 0;
+}
+
+.mobile {
+  flex: 1;
+  margin: var(--space-3);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.results > * {
+  height: 100%;
+}

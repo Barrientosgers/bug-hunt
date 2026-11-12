@@ -1,0 +1,52 @@
+.bubble {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.avatar {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.avatar[data-character='priya'] {
+  background: var(--priya);
+}
+.avatar[data-character='maya'] {
+  background: var(--maya);
+}
+.avatar[data-character='leo'] {
+  background: var(--leo);
+}
+
+.body {
+  min-width: 0;
+}
+
+.who {
+  margin: 0 0 var(--space-1);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.who strong {
+  color: var(--text);
+}
+
+.text {
+  padding: var(--space-3) var(--space-4);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  line-height: 1.5;
+}
+
+.text p {
+  margin: 0;
+}

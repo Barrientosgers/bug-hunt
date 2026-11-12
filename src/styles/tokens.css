@@ -1,0 +1,56 @@
+/* Design tokens: every color, size and font used by the app lives here.
+   The theme is chosen by the data-theme attribute on <html> (see src/theme). */
+
+:root {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+
+  /* Character colors (avatars) */
+  --priya: #7c6cf0;
+  --maya: #e0558f;
+  --leo: #2f9ab8;
+}
+
+/* Dark is the default theme. */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1420;
+  --panel: #171d2d;
+  --panel-2: #1f283c;
+  --border: #2f3a55;
+  --text: #e8ebf3;
+  --text-muted: #a3adc5;
+  --accent: #ff7a45;
+  --accent-contrast: #1a0d06;
+  --pass: #3ecf8e;
+  --warn: #f5b83d;
+  --fail: #ff7b7b;
+  --focus: #8ab4ff;
+  --shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4f5fa;
+  --panel: #ffffff;
+  --panel-2: #eceff7;
+  --border: #cfd5e6;
+  --text: #1a2033;
+  --text-muted: #4b5670;
+  --accent: #c2410c;
+  --accent-contrast: #ffffff;
+  --pass: #0f7a4f;
+  --warn: #8a5a00;
+  --fail: #b42323;
+  --focus: #1d4ed8;
+  --shadow: 0 8px 24px rgb(20 30 60 / 0.12);
+}
