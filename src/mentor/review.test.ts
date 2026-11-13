@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Challenge } from '../content/types.ts'
 import type { JournalState } from '../game/journal.ts'
-import type { ResultSummary } from '../game/results.ts'
 import { buildReview, matchHypothesis, type ReviewInput } from './review.ts'
 
 const challenge = {
@@ -55,7 +54,6 @@ const challenge = {
   },
 } as unknown as Challenge
 
-const summary = {} as ResultSummary
 const written = (
   beforeFirstRun: boolean,
   where = 'the sort',
@@ -71,7 +69,6 @@ function input(overrides: Partial<ReviewInput> = {}): ReviewInput {
     language: 'js',
     starterCode: 'sort(a)\nreturn a',
     finalCode: 'sort(Number(a).slice())\nreturn a',
-    summary,
     journal: written(true),
     hintsUsed: 0,
     runs: 2,

@@ -1,6 +1,5 @@
 import type { Challenge, Hypothesis, Language } from '../content/types.ts'
 import type { JournalEntry, JournalState } from '../game/journal.ts'
-import type { ResultSummary } from '../game/results.ts'
 import { diffStats } from './diff.ts'
 import { firedRules } from './rules.ts'
 
@@ -28,7 +27,6 @@ export interface ReviewInput {
   starterCode: string
   /** The code that passed the tests. */
   finalCode: string
-  summary: ResultSummary
   journal: JournalState
   hintsUsed: number
   /** Test runs it took, including the one that solved it. */

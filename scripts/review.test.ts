@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import { LANGUAGES } from '../src/content/types.ts'
 import { parseChallenge } from '../src/content/validate.ts'
 import { buildReview } from '../src/mentor/review.ts'
-import type { ResultSummary } from '../src/game/results.ts'
 
 const dir = path.resolve('content/challenges/001-leaderboard')
 const challenge = parseChallenge(
@@ -21,7 +20,6 @@ describe('review of the real leaderboard challenge', () => {
       challenge,
       language,
       starterCode: buggy,
-      summary: {} as ResultSummary,
       journal: { status: 'skipped' } as const,
       hintsUsed: 0,
       runs: 1,
