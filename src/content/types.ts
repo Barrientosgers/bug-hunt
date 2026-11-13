@@ -37,6 +37,17 @@ export const SKILLS = [
 ] as const
 export type Skill = (typeof SKILLS)[number]
 
+export const SKILL_LABELS: Record<Skill, string> = {
+  'data-types': 'Data types',
+  loops: 'Loops',
+  conditions: 'Conditions',
+  async: 'Async',
+  dates: 'Dates',
+  mutation: 'Mutation',
+  math: 'Math',
+  'control-flow': 'Control flow',
+}
+
 /**
  * A rule-based code-review rule (the MVP mentor is not AI). The rule "fires" when
  * the player's fixed code matches `pattern` (or does NOT match, if `matches` is false).

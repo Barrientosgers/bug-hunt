@@ -27,6 +27,8 @@ export interface RunOutcome {
   solved: boolean
   /** Every bonus test passed too (there is at least one). Only true when solved. */
   bonusFound: boolean
+  /** How many required tests there are (all of them passed when `solved`). */
+  totalRequired: number
   /** How many test runs it has taken for this challenge and language, including this one. */
   runNumber: number
 }
@@ -69,6 +71,7 @@ export function useRunTests() {
             solved &&
             summary.bonus.length > 0 &&
             summary.passedBonus === summary.bonus.length,
+          totalRequired: summary.required.length,
           runNumber: historyRef.current.filter((entry) => entry.key === key).length,
         }
       } finally {

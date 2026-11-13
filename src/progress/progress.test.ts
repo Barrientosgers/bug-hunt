@@ -53,6 +53,15 @@ const memory = () => {
 }
 
 describe('store', () => {
+  it('accepts solves saved without a trail, and rejects a malformed trail', () => {
+    const withTrail = solve({ trail: 'ryg' })
+    const raw = JSON.stringify({
+      version: 1,
+      solves: [solve(), withTrail, { ...solve({ challengeId: 'z' }), trail: 'xyz' }],
+    })
+    expect(parseProgress(raw).solves).toHaveLength(2)
+  })
+
   it('round-trips progress through storage', () => {
     const storage = memory()
     const data = build(solve())
