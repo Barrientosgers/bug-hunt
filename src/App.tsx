@@ -28,6 +28,11 @@ import { useCode } from './game/useCode.ts'
 import { useHints } from './game/useHints.ts'
 import { useJournal } from './game/useJournal.ts'
 import { useRunTests } from './game/useRunTests.ts'
+import { generateFlag } from './progress/flag.ts'
+import { findSolve } from './progress/store.ts'
+import { summarizeProgress } from './progress/summary.ts'
+import { toLocalDay } from './progress/streak.ts'
+import { useProgress } from './progress/useProgress.ts'
 import { useTimer, useTimerHidden } from './game/useTimer.ts'
 import { ThemeToggle } from './theme/ThemeToggle.tsx'
 import { APP_TITLE } from './config'
@@ -44,6 +49,10 @@ function firstChallenge(): { challenge?: Challenge; error?: string } {
 }
 
 const loaded = firstChallenge()
+// Skills that at least one challenge exists for (badges for other skills say "coming soon").
+const AVAILABLE_SKILLS = loaded.challenge
+  ? [...new Set(listChallenges().map((challenge) => challenge.skill))]
+  : []
 
 export default function App() {
   if (!loaded.challenge) {
@@ -85,22 +94,30 @@ function Game({ challenge }: { challenge: Challenge }) {
   const current = lastRun?.key === runKey ? lastRun : null
   const summary = current ? summarize(current.result) : null
   const stale = current !== null && current.ranCode !== code
-  const solved = summary?.status === 'solved'
+  const progress = useProgress()
+  const storedSolve = findSolve(progress.data, challenge.id, language)
+  const progressSummary = summarizeProgress(
+    progress.data,
+    toLocalDay(new Date()),
+    AVAILABLE_SKILLS,
+  )
+  // Solved earlier (saved) or just now.
+  const solved = Boolean(storedSolve) || summary?.status === 'solved'
   const timer = useTimer(challenge.id, language, journal.unlocked, solved)
   const timerVisibility = useTimerHidden()
   const keyHistory = history.filter((entry) => entry.key === runKey)
   const engaged = engagedAt?.key === runKey ? engagedAt : null
+  // Built from the saved solve, so the review is still there after a refresh.
   const review =
-    summary?.status === 'solved' && current && starter !== undefined
+    storedSolve && starter !== undefined
       ? buildReview({
           challenge,
           language,
           starterCode: starter,
-          finalCode: current.ranCode,
-          summary,
+          finalCode: storedSolve.finalCode,
           journal: journal.state,
-          hintsUsed: hints.used,
-          runs: keyHistory.length,
+          hintsUsed: storedSolve.hintsUsed,
+          runs: storedSolve.runs,
         })
       : null
   const questStep = solved ? 'review' : journal.unlocked ? 'debug' : 'journal'
@@ -130,8 +147,30 @@ function Game({ challenge }: { challenge: Challenge }) {
     if (!journal.unlocked || code === undefined || tests === undefined) return
     setResultsTab('tests')
     setHintNotice(false)
-    void run(runKey, language, code, tests, timer.elapsedMs).then((didSolve) => {
-      if (didSolve) setResultsTab('review')
+    void run(runKey, language, code, tests, timer.elapsedMs).then((outcome) => {
+      if (!outcome) return
+      if (outcome.solved) {
+        setResultsTab('review')
+        progress.recordSolve({
+          challengeId: challenge.id,
+          number: challenge.number,
+          language,
+          difficulty: challenge.difficulty,
+          skill: challenge.skill,
+          solvedAt: Date.now(),
+          day: toLocalDay(new Date()),
+          runs: outcome.runNumber,
+          hintsUsed: hints.used,
+          elapsedMs: timer.elapsedMs,
+          journalBeforeFirstRun:
+            journal.state.status === 'written' && journal.state.entry.beforeFirstRun,
+          bonusFound: outcome.bonusFound,
+          flag: generateFlag(challenge.number, language),
+          finalCode: code,
+          isDaily: false,
+        })
+      }
+      if (outcome.bonusFound) progress.recordBonus(challenge.id, language, code)
     })
   }
 
@@ -312,7 +351,15 @@ function Game({ challenge }: { challenge: Challenge }) {
         </h1>
         <QuestBar current={questStep} />
         <div className={styles.right}>
-          <span className={styles.rank}>Rank: Intern</span>
+          <span className={styles.rank}>
+            {progressSummary.rank.rank.name} · {progressSummary.totalXp} XP
+          </span>
+          {progressSummary.currentStreak > 0 && (
+            <span className={styles.rank}>
+              <span aria-hidden="true">🔥 </span>
+              {progressSummary.currentStreak}-day streak
+            </span>
+          )}
           <ThemeToggle />
         </div>
       </header>
