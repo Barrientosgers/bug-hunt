@@ -1,0 +1,110 @@
+.summary {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.heading {
+  margin: 0 0 var(--space-2);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.flagRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2);
+}
+
+.flag {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.copyStatus {
+  font-size: 0.85rem;
+  color: var(--pass);
+}
+
+.xpTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.xpTable th,
+.xpTable td {
+  padding: var(--space-1) 0;
+  text-align: left;
+  font-weight: 400;
+}
+
+.xpTable td {
+  text-align: right;
+  font-family: var(--font-mono);
+  color: var(--pass);
+}
+
+.xpTable td[data-negative='true'] {
+  color: var(--warn);
+}
+
+.xpTable tfoot th,
+.xpTable tfoot td {
+  padding-top: var(--space-2);
+  font-weight: 700;
+  border-top: 1px solid var(--border);
+}
+
+.xpTable tfoot td {
+  color: var(--text);
+}
+
+.rankUp {
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.rankName {
+  margin: 0 0 var(--space-2);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.bar {
+  width: 100%;
+  height: 0.75rem;
+  accent-color: var(--accent);
+}
+
+.line {
+  margin: 0 0 var(--space-1);
+}
+
+.badges {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.share {
+  margin: 0 0 var(--space-2);
+  white-space: pre-wrap;
+}

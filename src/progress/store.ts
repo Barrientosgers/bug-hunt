@@ -27,6 +27,8 @@ function isSolve(value: unknown): value is Solve {
     typeof s.bonusFound === 'boolean' &&
     typeof s.flag === 'string' &&
     typeof s.finalCode === 'string' &&
+    (s.trail === undefined ||
+      (typeof s.trail === 'string' && /^[ryg]*$/.test(s.trail))) &&
     typeof s.isDaily === 'boolean'
   )
 }

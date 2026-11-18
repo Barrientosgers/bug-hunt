@@ -25,6 +25,11 @@ export interface Solve {
   flag: string
   /** The player's code that passed (used to rebuild the code review after a refresh). */
   finalCode: string
+  /**
+   * How the runs went, one letter each: r = no progress, y = progress, g = solved.
+   * Optional, because solves saved before this field existed do not have it.
+   */
+  trail?: string
   /** Solved on the day the daily bug was current (Phase 6). */
   isDaily: boolean
 }

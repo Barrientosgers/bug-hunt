@@ -8,6 +8,8 @@ import { HintLadder } from './components/HintLadder.tsx'
 import { GameLayout } from './components/GameLayout.tsx'
 import { LanguageSelect } from './components/LanguageSelect.tsx'
 import { MentorNudge } from './components/MentorNudge.tsx'
+import { RewardDialog } from './components/RewardDialog.tsx'
+import { RewardSummary } from './components/RewardSummary.tsx'
 import { QuestBar } from './components/QuestBar.tsx'
 import { Tabs } from './components/Tabs.tsx'
 import { TestResults } from './components/TestResults.tsx'
@@ -19,6 +21,7 @@ import {
   type Challenge,
   type Language,
 } from './content/types.ts'
+import type { Solve } from './progress/types.ts'
 import { pickLanguage, readSavedLanguage, saveLanguage } from './game/language.ts'
 import { HINT_COST, HINT_COUNT, needsConfirmation } from './game/hints.ts'
 import { headline, summarize } from './game/results.ts'
@@ -29,8 +32,15 @@ import { useHints } from './game/useHints.ts'
 import { useJournal } from './game/useJournal.ts'
 import { useRunTests } from './game/useRunTests.ts'
 import { generateFlag } from './progress/flag.ts'
-import { findSolve } from './progress/store.ts'
-import { summarizeProgress } from './progress/summary.ts'
+import type { BadgeProgress } from './progress/badges.ts'
+import { buildShareText, trailFrom } from './progress/share.ts'
+import { addSolve, findSolve } from './progress/store.ts'
+import {
+  SKILL_POINTS,
+  newlyEarnedBadges,
+  solveBreakdown,
+  summarizeProgress,
+} from './progress/summary.ts'
 import { toLocalDay } from './progress/streak.ts'
 import { useProgress } from './progress/useProgress.ts'
 import { useTimer, useTimerHidden } from './game/useTimer.ts'
@@ -83,6 +93,13 @@ function Game({ challenge }: { challenge: Challenge }) {
   const journal = useJournal(challenge.id, runs)
   const hints = useHints(challenge.id, language)
   const [hintNotice, setHintNotice] = useState(false)
+  // What just happened when the player solved the bug (for the reward dialog).
+  const [rewardEvent, setRewardEvent] = useState<{
+    key: string
+    rankUp: string | null
+    newBadges: BadgeProgress[]
+  } | null>(null)
+  const [rewardOpen, setRewardOpen] = useState(false)
   // When the player last engaged with Priya (took a hint or dismissed her offer).
   const [engagedAt, setEngagedAt] = useState<{
     key: string
@@ -120,6 +137,32 @@ function Game({ challenge }: { challenge: Challenge }) {
           runs: storedSolve.runs,
         })
       : null
+  const rewardContent = storedSolve ? (
+    <RewardSummary
+      solve={storedSolve}
+      breakdown={solveBreakdown(progress.data, storedSolve)}
+      rank={progressSummary.rank}
+      rankUp={rewardEvent?.key === runKey ? rewardEvent.rankUp : null}
+      skillGain={SKILL_POINTS[storedSolve.difficulty]}
+      skillTotal={
+        progressSummary.skillPoints[storedSolve.skill]?.[storedSolve.language] ?? 0
+      }
+      newBadges={rewardEvent?.key === runKey ? rewardEvent.newBadges : []}
+      streak={progressSummary.currentStreak}
+      shareText={buildShareText({
+        number: storedSolve.number,
+        language: storedSolve.language,
+        trail: storedSolve.trail,
+        runs: storedSolve.runs,
+        elapsedMs: storedSolve.elapsedMs,
+        hintsUsed: storedSolve.hintsUsed,
+        journal: storedSolve.journalBeforeFirstRun,
+        bonus: storedSolve.bonusFound,
+        streak: progressSummary.currentStreak,
+        rankName: progressSummary.rank.rank.name,
+      })}
+    />
+  ) : null
   const questStep = solved ? 'review' : journal.unlocked ? 'debug' : 'journal'
 
   function markEngaged() {
@@ -151,14 +194,15 @@ function Game({ challenge }: { challenge: Challenge }) {
       if (!outcome) return
       if (outcome.solved) {
         setResultsTab('review')
-        progress.recordSolve({
+        const today = toLocalDay(new Date())
+        const newSolve: Solve = {
           challengeId: challenge.id,
           number: challenge.number,
           language,
           difficulty: challenge.difficulty,
           skill: challenge.skill,
           solvedAt: Date.now(),
-          day: toLocalDay(new Date()),
+          day: today,
           runs: outcome.runNumber,
           hintsUsed: hints.used,
           elapsedMs: timer.elapsedMs,
@@ -167,8 +211,27 @@ function Game({ challenge }: { challenge: Challenge }) {
           bonusFound: outcome.bonusFound,
           flag: generateFlag(challenge.number, language),
           finalCode: code,
+          trail: trailFrom(
+            [...keyHistory.map((entry) => entry.passed), outcome.totalRequired],
+            outcome.totalRequired,
+          ),
           isDaily: false,
-        })
+        }
+        const before = progress.data
+        const after = addSolve(before, newSolve)
+        if (after !== before) {
+          const rankBefore = summarizeProgress(before, today, AVAILABLE_SKILLS).rank.rank
+            .name
+          const rankAfter = summarizeProgress(after, today, AVAILABLE_SKILLS).rank.rank
+            .name
+          setRewardEvent({
+            key: runKey,
+            rankUp: rankAfter !== rankBefore ? rankAfter : null,
+            newBadges: newlyEarnedBadges(before, after, today, AVAILABLE_SKILLS),
+          })
+          setRewardOpen(true)
+        }
+        progress.recordSolve(newSolve)
       }
       if (outcome.bonusFound) progress.recordBonus(challenge.id, language, code)
     })
@@ -317,6 +380,9 @@ function Game({ challenge }: { challenge: Challenge }) {
           label: 'Tests',
           content: <TestResults summary={summary} running={running} stale={stale} />,
         },
+        ...(rewardContent
+          ? [{ id: 'reward', label: 'Reward', content: rewardContent }]
+          : []),
         {
           id: 'hints',
           label: hints.used > 0 ? `Hints (${hints.used})` : 'Hints',
@@ -366,6 +432,16 @@ function Game({ challenge }: { challenge: Challenge }) {
       <main id="main" className={styles.main}>
         <GameLayout ticket={ticket} editor={editor} results={results} />
       </main>
+      <RewardDialog
+        open={rewardOpen && rewardContent !== null}
+        onClose={() => setRewardOpen(false)}
+        onSeeReview={() => {
+          setRewardOpen(false)
+          setResultsTab('review')
+        }}
+      >
+        {rewardContent}
+      </RewardDialog>
     </div>
   )
 }
