@@ -157,3 +157,12 @@
     flex-wrap: wrap;
   }
 }
+
+.routeWrap:not([hidden]) {
+  display: contents;
+}
+
+.navLink {
+  color: var(--text);
+  font-weight: 600;
+}

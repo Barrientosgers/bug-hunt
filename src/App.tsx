@@ -15,6 +15,9 @@ import { Tabs } from './components/Tabs.tsx'
 import { TestResults } from './components/TestResults.tsx'
 import { TimerBadge } from './components/TimerBadge.tsx'
 import { listChallenges } from './content/loader.ts'
+import { hrefFor } from './hooks/route.ts'
+import { useHashRoute } from './hooks/useHashRoute.ts'
+import { ProgressPage } from './pages/ProgressPage.tsx'
 import {
   LANGUAGE_LABELS,
   LANGUAGES,
@@ -74,7 +77,23 @@ export default function App() {
       </main>
     )
   }
-  return <Game key={loaded.challenge.id} challenge={loaded.challenge} />
+  return <Routes challenge={loaded.challenge} />
+}
+
+/**
+ * The game stays mounted (just hidden) while the Progress page is open, so the player's
+ * editor, results and reward dialog are exactly as they left them.
+ */
+function Routes({ challenge }: { challenge: Challenge }) {
+  const route = useHashRoute()
+  return (
+    <>
+      <div hidden={route !== 'game'} className={styles.routeWrap}>
+        <Game key={challenge.id} challenge={challenge} />
+      </div>
+      {route === 'progress' && <ProgressPage availableSkills={AVAILABLE_SKILLS} />}
+    </>
+  )
 }
 
 function Game({ challenge }: { challenge: Challenge }) {
@@ -426,6 +445,9 @@ function Game({ challenge }: { challenge: Challenge }) {
               {progressSummary.currentStreak}-day streak
             </span>
           )}
+          <a className={styles.navLink} href={hrefFor('progress')}>
+            Progress
+          </a>
           <ThemeToggle />
         </div>
       </header>
