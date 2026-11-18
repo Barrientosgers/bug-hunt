@@ -1,0 +1,46 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge {
+  padding: var(--space-4);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.badge[data-state='earned'] {
+  border-color: var(--accent);
+}
+
+.badge[data-state='soon'] {
+  border-style: dashed;
+}
+
+.name {
+  margin: 0 0 var(--space-1);
+  font-size: 1rem;
+}
+
+.description {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.progress {
+  width: 100%;
+  height: 0.6rem;
+  accent-color: var(--accent);
+}
+
+.status {
+  margin: var(--space-1) 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
