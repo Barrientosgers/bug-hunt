@@ -4,8 +4,8 @@ export interface HeatmapCell {
   /** "YYYY-MM-DD" */
   day: string
   count: number
-  /** 0 (nothing solved) to 4 (four or more). Used for shading. */
-  level: 0 | 1 | 2 | 3 | 4
+  /** 0 (nothing solved) to 3 (three or more). Used for shading; the count is also written. */
+  level: 0 | 1 | 2 | 3
   /** After today: shown as an empty slot, never as "0 solved". */
   future: boolean
 }
@@ -19,7 +19,7 @@ function weekdayIndex(day: string): number {
 }
 
 export const levelFor = (count: number): HeatmapCell['level'] =>
-  count <= 0 ? 0 : count >= 4 ? 4 : (count as 1 | 2 | 3)
+  count <= 0 ? 0 : count >= 3 ? 3 : (count as 1 | 2)
 
 /**
  * The heatmap grid: one array per week (Monday first), oldest week first. The last week
