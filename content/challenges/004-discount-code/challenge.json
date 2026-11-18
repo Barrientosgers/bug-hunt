@@ -1,0 +1,142 @@
+{
+  "id": "004-discount-code",
+  "number": 4,
+  "kind": "code",
+  "title": "The FIVEOFF promo shows $NaN",
+  "character": "maya",
+  "difficulty": "easy",
+  "skill": "control-flow",
+  "languageSpecific": null,
+  "ticket": {
+    "subject": "FIVEOFF promo breaks checkout",
+    "body": "Hi team! We launched the FIVEOFF promo this morning and support is already getting messages. Customers who use the code see \"Total: $NaN\" (or checkout just errors out). SNACK10 works fine for everyone. The campaign email goes out again at noon, so I would love this fixed before then. Thanks! (Maya, Product)"
+  },
+  "briefing": "Today's skill is control flow: which path does the code take, and what does each path hand back? When one branch of a function misbehaves and its neighbors don't, compare the broken branch with a working one, line by line. Tip: ask yourself \"what does this function return on every path?\" (Priya)",
+  "lesson": "Every path through a function must hand back a value. A value that is computed but not returned is simply thrown away, and the caller gets nothing (undefined in JavaScript, None in Python). Compare the branch that fails with the one that works.",
+  "howToPrevent": "Make every branch end the same way: a return. Add a test for every branch, not just the first two. A linter rule such as consistent-return (ESLint) or a type checker catches this before the code ever runs.",
+  "whereItShowsUpAtWork": "Missing returns, forgotten else branches and half-finished if/else chains are common in promo rules, permission checks and price calculations. They often hide behind the happy path: the first branch gets tested, and the one added later is not.",
+  "bonusTests": "A bonus test checks that discount codes work when typed in lowercase (\"snack10\"). Fixing the missing return is not the whole story: real customers do not type codes exactly as the database stores them.",
+  "hypothesis": {
+    "where": [
+      "discountcents",
+      "discount_cents",
+      "fiveoff",
+      "branch",
+      "else if",
+      "elif",
+      "return",
+      "promo",
+      "function",
+      "condition"
+    ],
+    "why": [
+      "return",
+      "undefined",
+      "none",
+      "nan",
+      "missing",
+      "forgot",
+      "no value",
+      "nothing",
+      "not returning",
+      "typeerror",
+      "throws away"
+    ],
+    "good": "Your hypothesis pointed at the real cause, which is exactly where the bug was. Connecting the symptom to one specific spot in the code is real detective work.",
+    "partial": "You were close: part of your hypothesis matched the real cause. Notice which part you got right, because that instinct is worth trusting.",
+    "miss": "Your hunch was different from the real cause, and that is completely normal. Ruling things out is how debugging works. Compare your guess with the root cause above to sharpen your instincts for next time.",
+    "skipped": "You skipped the journal this time. Next time, even a one-line guess helps you debug faster, because it gives you something to confirm or rule out."
+  },
+  "languages": {
+    "js": {
+      "fileName": "discounts.js",
+      "buggy": "js/buggy.js",
+      "solution": "js/solution.js",
+      "tests": "js/tests.js",
+      "hints": [
+        "Read the failing test 'FIVEOFF takes $5 off'. What do you expect, and what do you get back instead? Compare it with the SNACK10 test, which passes.",
+        "Log it: add console.log(discountCents(2000, 'FIVEOFF')). What prints? Then try finalTotalCents(2000, 'FIVEOFF') and ask yourself where the NaN comes from.",
+        "A JavaScript function hands a value back only when it reaches a return. If it finishes without one, the result is undefined, and 2000 - undefined is NaN. Put the SNACK10 branch next to the FIVEOFF branch: what is the one word that is different?",
+        "Add the missing word: return Math.min(500, subtotalCents). For the bonus, customers type codes in lowercase: normalize the code once at the top, for example with code.toUpperCase()."
+      ],
+      "reviewRules": [
+        {
+          "id": "returns-discount",
+          "kind": "root-cause",
+          "pattern": "return\\s+(Math\\.min|500|subtotalCents\\s*<)",
+          "matches": true,
+          "feedback": "You made the FIVEOFF branch return its value. That is the root cause: the discount was computed and then thrown away, so the function handed back nothing."
+        },
+        {
+          "id": "missing-return",
+          "kind": "symptom",
+          "pattern": "return\\s+(Math\\.min|500|subtotalCents\\s*<)",
+          "matches": false,
+          "feedback": "I could not find a return in your FIVEOFF branch. If your tests pass anyway you may have fixed it another way, which is fine. If not, check what that branch hands back."
+        },
+        {
+          "id": "normalizes-code",
+          "kind": "bonus",
+          "pattern": "toUpperCase\\(\\)|toLowerCase\\(\\)",
+          "matches": true,
+          "feedback": "Bonus find: you normalized the code, so \"snack10\" works as well as \"SNACK10\". Thinking about how real people type is a senior habit."
+        },
+        {
+          "id": "case-tip",
+          "kind": "tip",
+          "pattern": "toUpperCase\\(\\)|toLowerCase\\(\\)",
+          "matches": false,
+          "feedback": "Tip: customers type codes in lowercase. The bonus test checks that \"snack10\" works too. Try normalizing the code once, at the top of the function."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 6
+      }
+    },
+    "python": {
+      "fileName": "discounts.py",
+      "buggy": "python/buggy.py",
+      "solution": "python/solution.py",
+      "tests": "python/tests.py",
+      "hints": [
+        "Read the failing test 'fiveoff takes 5 dollars off'. What do you expect, and what do you get (or what error)? Compare it with the SNACK10 test, which passes.",
+        "Print it: add print(repr(discount_cents(2000, 'FIVEOFF'))). What prints? Then read the TypeError from final_total_cents and ask what type it says the discount is.",
+        "A Python function hands a value back only when it reaches a return. If it finishes without one, the result is None, and 2000 - None is a TypeError. Put the SNACK10 branch next to the FIVEOFF branch: what is the one word that is different?",
+        "Add the missing word: return min(500, subtotal_cents). For the bonus, customers type codes in lowercase: normalize the code once at the top, for example with code = code.upper()."
+      ],
+      "reviewRules": [
+        {
+          "id": "returns-discount",
+          "kind": "root-cause",
+          "pattern": "return\\s+(min\\(|500)",
+          "matches": true,
+          "feedback": "You made the FIVEOFF branch return its value. That is the root cause: the discount was computed and then thrown away, so the function handed back nothing."
+        },
+        {
+          "id": "missing-return",
+          "kind": "symptom",
+          "pattern": "return\\s+(min\\(|500)",
+          "matches": false,
+          "feedback": "I could not find a return in your FIVEOFF branch. If your tests pass anyway you may have fixed it another way, which is fine. If not, check what that branch hands back."
+        },
+        {
+          "id": "normalizes-code",
+          "kind": "bonus",
+          "pattern": "\\.upper\\(\\)|\\.lower\\(\\)|casefold\\(\\)",
+          "matches": true,
+          "feedback": "Bonus find: you normalized the code, so \"snack10\" works as well as \"SNACK10\". Thinking about how real people type is a senior habit."
+        },
+        {
+          "id": "case-tip",
+          "kind": "tip",
+          "pattern": "\\.upper\\(\\)|\\.lower\\(\\)|casefold\\(\\)",
+          "matches": false,
+          "feedback": "Tip: customers type codes in lowercase. The bonus test checks that \"snack10\" works too. Try normalizing the code once, at the top of the function."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 6
+      }
+    }
+  }
+}
