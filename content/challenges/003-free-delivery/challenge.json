@@ -1,0 +1,143 @@
+{
+  "id": "003-free-delivery",
+  "number": 3,
+  "kind": "code",
+  "title": "Free delivery is not free at exactly $25",
+  "character": "leo",
+  "difficulty": "easy",
+  "skill": "conditions",
+  "languageSpecific": null,
+  "ticket": {
+    "subject": "Customer charged delivery on a $25 order",
+    "body": "Hi! A customer is upset. The app says \"Free delivery on orders of $25 or more\", but her cart was exactly $25.00 and she still paid a delivery fee. She sent a screenshot. The weird thing: when I tried a $30 cart it was free, so I thought it was fine. Can someone check? (Leo, Customer Support)"
+  },
+  "briefing": "Today's skill is conditions. When a bug shows up for exactly one value, test the boundary. Tip: put the ticket's sentence next to the code and translate each word into a symbol. Then ask yourself what happens at the exact value, not just above and below it. (Priya)",
+  "lesson": "Words like \"or more\", \"at least\" and \"up to\" decide whether the exact boundary counts. \"$25 or more\" is >= 2500, not > 2500. Always test the value on the line itself, not just values on either side.",
+  "howToPrevent": "Translate each requirement into a comparison word by word (\"or more\" means >=), and write a test for the exact boundary plus one cent either side. Keep the threshold in one named constant so the code and the promise in the UI come from the same place.",
+  "whereItShowsUpAtWork": "Free-shipping thresholds, age limits (18 or older), rate limits, discount tiers and password lengths all have boundaries. A wrong operator passes every test that skips the exact value, and customers find it for you.",
+  "bonusTests": "A bonus test checks that an empty cart has no delivery fee. Fixing the operator is not the whole story: with a 0 subtotal the code would still charge 299 cents, so the rule needs a case for \"nothing to deliver\".",
+  "hypothesis": {
+    "where": [
+      "deliveryfee",
+      "delivery_fee",
+      "condition",
+      "if",
+      "compar",
+      "threshold",
+      "minimum",
+      "operator",
+      "free_delivery",
+      "25",
+      "2500"
+    ],
+    "why": [
+      "boundary",
+      "exactly",
+      "equal",
+      "or more",
+      "at least",
+      "inclusive",
+      "edge",
+      "off-by-one",
+      ">=",
+      "> ",
+      "greater"
+    ],
+    "good": "Your hypothesis pointed at the comparison at the boundary, which is exactly where the bug was. Connecting the ticket's words to a single operator is a great debugging habit.",
+    "partial": "You were close: part of your hypothesis matched the real cause. Notice which part you got right, because that instinct is worth trusting.",
+    "miss": "Your hunch was different from the real cause, and that is completely normal. Ruling things out is how debugging works. Compare your guess with the root cause above to sharpen your instincts for next time.",
+    "skipped": "You skipped the journal this time. Next time, even a one-line guess helps you debug faster, because it gives you something to confirm or rule out."
+  },
+  "languages": {
+    "js": {
+      "fileName": "delivery.js",
+      "buggy": "js/buggy.js",
+      "solution": "js/solution.js",
+      "tests": "js/tests.js",
+      "hints": [
+        "Read the failing test 'delivery is free at exactly $25.00'. What fee do you expect, and what fee do you get? Then look at the tests that pass (2499 and 3000). What is special about the value in the failing one?",
+        "Log the decision: add console.log(subtotalCents, subtotalCents > FREE_DELIVERY_MIN_CENTS) at the top of deliveryFee and call it with 2500. What does the comparison say about a cart that is exactly the minimum?",
+        "The ticket says \"$25 or more\". In code, > means strictly greater than, so 2500 > 2500 is false. \"Or more\" includes the boundary itself. Look for the operator that means greater than or equal to.",
+        "Use >= instead of >: if (subtotalCents >= FREE_DELIVERY_MIN_CENTS). Then check the bonus: what does deliveryFee(0) return for an empty cart? A cart with nothing in it should not be charged for delivery."
+      ],
+      "reviewRules": [
+        {
+          "id": "fixes-boundary",
+          "kind": "root-cause",
+          "pattern": ">=\\s*FREE_DELIVERY_MIN_CENTS|<\\s*FREE_DELIVERY_MIN_CENTS|>\\s*FREE_DELIVERY_MIN_CENTS\\s*-\\s*1|>=\\s*2500",
+          "matches": true,
+          "feedback": "You changed the comparison so that exactly the minimum counts as free. That is the root cause: the ticket says \"$25 or more\", and \"or more\" means >=."
+        },
+        {
+          "id": "still-off-by-one",
+          "kind": "symptom",
+          "pattern": ">=\\s*FREE_DELIVERY_MIN_CENTS|<\\s*FREE_DELIVERY_MIN_CENTS|>\\s*FREE_DELIVERY_MIN_CENTS\\s*-\\s*1|>=\\s*2500",
+          "matches": false,
+          "feedback": "Your comparison still treats exactly $25.00 as not enough. Read the ticket's words again (\"or more\") and test the exact boundary value to check you fixed the cause."
+        },
+        {
+          "id": "handles-empty-cart",
+          "kind": "bonus",
+          "pattern": "subtotalCents\\s*(===|==|<=)\\s*0|!subtotalCents",
+          "matches": true,
+          "feedback": "Bonus find: you handled the empty cart, so nobody pays a delivery fee for nothing. Thinking beyond the reported value is a real senior habit."
+        },
+        {
+          "id": "empty-cart",
+          "kind": "tip",
+          "pattern": "subtotalCents\\s*(===|==|<=)\\s*0|!subtotalCents",
+          "matches": false,
+          "feedback": "Tip: an empty cart (0 cents) currently pays the 299-cent delivery fee. The bonus test checks that nothing in the cart means no fee. Try a separate case for it."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 4
+      }
+    },
+    "python": {
+      "fileName": "delivery.py",
+      "buggy": "python/buggy.py",
+      "solution": "python/solution.py",
+      "tests": "python/tests.py",
+      "hints": [
+        "Read the failing test 'delivery is free at exactly 25 dollars'. What fee do you expect, and what fee do you get? Then look at the tests that pass (2499 and 3000). What is special about the value in the failing one?",
+        "Print the decision: add print(subtotal_cents, subtotal_cents > FREE_DELIVERY_MIN_CENTS) at the top of delivery_fee and call it with 2500. What does the comparison say about a cart that is exactly the minimum?",
+        "The ticket says \"$25 or more\". In code, > means strictly greater than, so 2500 > 2500 is False. \"Or more\" includes the boundary itself. Look for the operator that means greater than or equal to.",
+        "Use >= instead of >: if subtotal_cents >= FREE_DELIVERY_MIN_CENTS. Then check the bonus: what does delivery_fee(0) return for an empty cart? A cart with nothing in it should not be charged for delivery."
+      ],
+      "reviewRules": [
+        {
+          "id": "fixes-boundary",
+          "kind": "root-cause",
+          "pattern": ">=\\s*FREE_DELIVERY_MIN_CENTS|<\\s*FREE_DELIVERY_MIN_CENTS|>=\\s*2500",
+          "matches": true,
+          "feedback": "You changed the comparison so that exactly the minimum counts as free. That is the root cause: the ticket says \"$25 or more\", and \"or more\" means >=."
+        },
+        {
+          "id": "still-off-by-one",
+          "kind": "symptom",
+          "pattern": ">=\\s*FREE_DELIVERY_MIN_CENTS|<\\s*FREE_DELIVERY_MIN_CENTS|>=\\s*2500",
+          "matches": false,
+          "feedback": "Your comparison still treats exactly $25.00 as not enough. Read the ticket's words again (\"or more\") and test the exact boundary value to check you fixed the cause."
+        },
+        {
+          "id": "handles-empty-cart",
+          "kind": "bonus",
+          "pattern": "subtotal_cents\\s*(==|<=)\\s*0|not subtotal_cents",
+          "matches": true,
+          "feedback": "Bonus find: you handled the empty cart, so nobody pays a delivery fee for nothing. Thinking beyond the reported value is a real senior habit."
+        },
+        {
+          "id": "empty-cart",
+          "kind": "tip",
+          "pattern": "subtotal_cents\\s*(==|<=)\\s*0|not subtotal_cents",
+          "matches": false,
+          "feedback": "Tip: an empty cart (0 cents) currently pays the 299-cent delivery fee. The bonus test checks that nothing in the cart means no fee. Try a separate case for it."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 4
+      }
+    }
+  }
+}
