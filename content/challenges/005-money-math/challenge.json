@@ -1,0 +1,143 @@
+{
+  "id": "005-money-math",
+  "number": 5,
+  "kind": "code",
+  "title": "Receipt totals are off by a tiny amount",
+  "character": "leo",
+  "difficulty": "easy",
+  "skill": "math",
+  "languageSpecific": null,
+  "ticket": {
+    "subject": "Receipt totals do not match to the cent",
+    "body": "Hi! Finance says some totals in the receipts export do not match to the cent. For example, an order with one 10-cent item and one 20-cent item shows up as 30.000000000000004 cents in the data. Normal-sized orders seem fine, so I could not make it fail on my side. Can someone take a look? (Leo, Customer Support)"
+  },
+  "briefing": "Today's skill is math with real numbers. Computers store decimals in binary, and some simple decimals cannot be stored exactly, just like 1/3 cannot be written exactly in base 10. Tip: when 0.1 and 0.2 are involved, ask what the computer really stored, and log it. (Priya)",
+  "lesson": "Decimal fractions like 0.1 cannot be stored exactly in floating point, so tiny errors appear and add up. Work with money as whole numbers of cents, which are exact, and only convert to dollars at the edges (when showing a price).",
+  "howToPrevent": "Store and add money as integer cents (or use a decimal type). Round once, at the point where data enters your code. Never compare floats with ===; compare cents. Add tests with the classic trio: 0.1 + 0.2, ten 10-cent items, and a negative amount.",
+  "whereItShowsUpAtWork": "Anything with money, taxes, discounts or measurements: invoices that are off by a cent, totals that fail to reconcile, and checks like total === expected that randomly fail. Payment APIs such as Stripe use integer cents for exactly this reason.",
+  "bonusTests": "A bonus test checks that refunds format correctly: formatMoney(-250) should be \"-$2.50\". Money code often has several small traps in the same file, and a negative amount is a common one.",
+  "hypothesis": {
+    "where": [
+      "ordertotalcents",
+      "order_total_cents",
+      "total",
+      "price",
+      "sum",
+      "loop",
+      "multipl",
+      "float",
+      "decimal",
+      "number"
+    ],
+    "why": [
+      "float",
+      "floating",
+      "decimal",
+      "binary",
+      "precision",
+      "round",
+      "0.1",
+      "0.2",
+      "cents",
+      "integer",
+      "exact",
+      "inexact"
+    ],
+    "good": "Your hypothesis pointed at the real cause, which is exactly where the bug was. Connecting the symptom to one specific spot in the code is real detective work.",
+    "partial": "You were close: part of your hypothesis matched the real cause. Notice which part you got right, because that instinct is worth trusting.",
+    "miss": "Your hunch was different from the real cause, and that is completely normal. Ruling things out is how debugging works. Compare your guess with the root cause above to sharpen your instincts for next time.",
+    "skipped": "You skipped the journal this time. Next time, even a one-line guess helps you debug faster, because it gives you something to confirm or rule out."
+  },
+  "languages": {
+    "js": {
+      "fileName": "receipt.js",
+      "buggy": "js/buggy.js",
+      "solution": "js/solution.js",
+      "tests": "js/tests.js",
+      "hints": [
+        "Read the failing test 'adds a 10 cent item and a 20 cent item exactly'. What number do you expect, and what do you get? Look at every digit of the result.",
+        "Open the console and try console.log(0.1 + 0.2). Then console.log(0.1 * 100). Does the computer store 0.1 exactly? Compare it with a sum of whole numbers like 10 + 20.",
+        "Computers store decimals in binary, and numbers like 0.1 and 0.2 cannot be written exactly in binary, just like 1/3 cannot be written exactly in decimal. Tiny errors appear and add up. Whole numbers are exact, so money is safest as whole cents.",
+        "Convert each price to whole cents before adding: total += Math.round(item.price * 100) * item.qty, and return total as it is. For the bonus, look at formatMoney with a negative number: where does the minus sign end up?"
+      ],
+      "reviewRules": [
+        {
+          "id": "uses-cents",
+          "kind": "root-cause",
+          "pattern": "Math\\.round\\(",
+          "matches": true,
+          "feedback": "You converted prices to whole cents before adding. That is the root cause: decimals like 0.1 cannot be stored exactly, but whole numbers can, so adding cents is exact."
+        },
+        {
+          "id": "still-floats",
+          "kind": "symptom",
+          "pattern": "Math\\.round\\(",
+          "matches": false,
+          "feedback": "Your total still adds dollar amounts like 0.1 and 0.2 directly. If it passes some examples, try ten 10-cent items: tiny errors add up. Work in whole cents and convert at the edges."
+        },
+        {
+          "id": "handles-negative",
+          "kind": "bonus",
+          "pattern": "Math\\.abs\\(|<\\s*0",
+          "matches": true,
+          "feedback": "Bonus find: you fixed the refund formatting too, so negative amounts show the minus sign first. Checking neighboring code for the same kind of trap is a senior habit."
+        },
+        {
+          "id": "negative-tip",
+          "kind": "tip",
+          "pattern": "Math\\.abs\\(|<\\s*0",
+          "matches": false,
+          "feedback": "Tip: formatMoney(-250) currently prints a dollar sign before the minus. The bonus test checks for \"-$2.50\". Try formatting the sign separately from the amount."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 6
+      }
+    },
+    "python": {
+      "fileName": "receipt.py",
+      "buggy": "python/buggy.py",
+      "solution": "python/solution.py",
+      "tests": "python/tests.py",
+      "hints": [
+        "Read the failing test 'adds a 10 cent item and a 20 cent item exactly'. What number do you expect, and what do you get? Look at every digit of the result.",
+        "Print it: print(0.1 + 0.2), then print(0.1 * 100). Does the computer store 0.1 exactly? Compare it with a sum of whole numbers like 10 + 20.",
+        "Computers store decimals in binary, and numbers like 0.1 and 0.2 cannot be written exactly in binary, just like 1/3 cannot be written exactly in decimal. Tiny errors appear and add up. Whole numbers are exact, so money is safest as whole cents.",
+        "Convert each price to whole cents before adding: total += round(item['price'] * 100) * item['qty'], and return total as it is. For the bonus, look at format_money with a negative number: where does the minus sign end up?"
+      ],
+      "reviewRules": [
+        {
+          "id": "uses-cents",
+          "kind": "root-cause",
+          "pattern": "round\\(",
+          "matches": true,
+          "feedback": "You converted prices to whole cents before adding. That is the root cause: decimals like 0.1 cannot be stored exactly, but whole numbers can, so adding cents is exact."
+        },
+        {
+          "id": "still-floats",
+          "kind": "symptom",
+          "pattern": "round\\(",
+          "matches": false,
+          "feedback": "Your total still adds dollar amounts like 0.1 and 0.2 directly. If it passes some examples, try ten 10-cent items: tiny errors add up. Work in whole cents and convert at the edges."
+        },
+        {
+          "id": "handles-negative",
+          "kind": "bonus",
+          "pattern": "abs\\(|<\\s*0",
+          "matches": true,
+          "feedback": "Bonus find: you fixed the refund formatting too, so negative amounts show the minus sign first. Checking neighboring code for the same kind of trap is a senior habit."
+        },
+        {
+          "id": "negative-tip",
+          "kind": "tip",
+          "pattern": "abs\\(|<\\s*0",
+          "matches": false,
+          "feedback": "Tip: formatMoney(-250) currently prints a dollar sign before the minus. The bonus test checks for \"-$2.50\". Try formatting the sign separately from the amount."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 6
+      }
+    }
+  }
+}
