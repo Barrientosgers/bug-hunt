@@ -15,7 +15,9 @@ import { Tabs } from './components/Tabs.tsx'
 import { TestResults } from './components/TestResults.tsx'
 import { TimerBadge } from './components/TimerBadge.tsx'
 import { listChallenges } from './content/loader.ts'
-import { hrefFor } from './hooks/route.ts'
+import { hrefs } from './hooks/route.ts'
+import { dailyChallenge } from './game/daily.ts'
+import { PracticePage } from './pages/PracticePage.tsx'
 import { useHashRoute } from './hooks/useHashRoute.ts'
 import { ProgressPage } from './pages/ProgressPage.tsx'
 import {
@@ -51,24 +53,22 @@ import { ThemeToggle } from './theme/ThemeToggle.tsx'
 import { APP_TITLE } from './config'
 import styles from './App.module.css'
 
-// For now the game always shows the first challenge. Phase 6 adds the daily bug and the
-// practice library.
-function firstChallenge(): { challenge?: Challenge; error?: string } {
+function loadAll(): { challenges: Challenge[]; error?: string } {
   try {
-    return { challenge: listChallenges()[0] }
+    return { challenges: listChallenges() }
   } catch (error) {
-    return { error: String(error) }
+    return { challenges: [], error: String(error) }
   }
 }
 
-const loaded = firstChallenge()
+const loaded = loadAll()
 // Skills that at least one challenge exists for (badges for other skills say "coming soon").
-const AVAILABLE_SKILLS = loaded.challenge
-  ? [...new Set(listChallenges().map((challenge) => challenge.skill))]
-  : []
+const AVAILABLE_SKILLS = [
+  ...new Set(loaded.challenges.map((challenge) => challenge.skill)),
+]
 
 export default function App() {
-  if (!loaded.challenge) {
+  if (loaded.challenges.length === 0) {
     return (
       <main className={styles.fatal}>
         <h1>{APP_TITLE}</h1>
@@ -77,26 +77,58 @@ export default function App() {
       </main>
     )
   }
-  return <Routes challenge={loaded.challenge} />
+  return <Routes challenges={loaded.challenges} />
 }
 
 /**
- * The game stays mounted (just hidden) while the Progress page is open, so the player's
- * editor, results and reward dialog are exactly as they left them.
+ * The game stays mounted (just hidden) while another page is open, so the player's
+ * editor, results and reward dialog are exactly as they left them. Opening a different
+ * bug swaps the game (it is keyed by the challenge id), so nothing leaks between bugs.
  */
-function Routes({ challenge }: { challenge: Challenge }) {
+function Routes({ challenges }: { challenges: Challenge[] }) {
   const route = useHashRoute()
+  const today = toLocalDay(new Date())
+  const daily = dailyChallenge(challenges, today)
+
+  const wanted =
+    route.page === 'daily'
+      ? daily
+      : route.page === 'play'
+        ? challenges.find((challenge) => challenge.id === route.id)
+        : undefined
+  const [current, setCurrent] = useState<Challenge>(daily)
+  // Remember the last bug opened, so the game can wait (hidden) behind the other pages.
+  if (wanted && wanted.id !== current.id) setCurrent(wanted)
+
+  const onGamePage = route.page === 'daily' || route.page === 'play'
+  const notFound = route.page === 'play' && !wanted
+
   return (
     <>
-      <div hidden={route !== 'game'} className={styles.routeWrap}>
-        <Game key={challenge.id} challenge={challenge} />
+      <div hidden={!onGamePage || notFound} className={styles.routeWrap}>
+        <Game
+          key={current.id}
+          challenge={wanted ?? current}
+          isDaily={current.id === daily.id}
+        />
       </div>
-      {route === 'progress' && <ProgressPage availableSkills={AVAILABLE_SKILLS} />}
+      {notFound && (
+        <main className={styles.fatal}>
+          <h1>{APP_TITLE}</h1>
+          <p>We could not find that bug.</p>
+          <p>
+            <a href={hrefs.practice}>Browse the practice library</a> or{' '}
+            <a href={hrefs.daily}>go to today&apos;s bug</a>.
+          </p>
+        </main>
+      )}
+      {route.page === 'progress' && <ProgressPage availableSkills={AVAILABLE_SKILLS} />}
+      {route.page === 'practice' && <PracticePage challenges={challenges} />}
     </>
   )
 }
 
-function Game({ challenge }: { challenge: Challenge }) {
+function Game({ challenge, isDaily }: { challenge: Challenge; isDaily: boolean }) {
   const available = LANGUAGES.filter((language) => challenge.languages[language])
   const [language, setLanguage] = useState<Language>(() =>
     pickLanguage(readSavedLanguage(), available),
@@ -234,7 +266,7 @@ function Game({ challenge }: { challenge: Challenge }) {
             [...keyHistory.map((entry) => entry.passed), outcome.totalRequired],
             outcome.totalRequired,
           ),
-          isDaily: false,
+          isDaily,
         }
         const before = progress.data
         const after = addSolve(before, newSolve)
@@ -445,7 +477,10 @@ function Game({ challenge }: { challenge: Challenge }) {
               {progressSummary.currentStreak}-day streak
             </span>
           )}
-          <a className={styles.navLink} href={hrefFor('progress')}>
+          <a className={styles.navLink} href={hrefs.practice}>
+            Practice
+          </a>
+          <a className={styles.navLink} href={hrefs.progress}>
             Progress
           </a>
           <ThemeToggle />

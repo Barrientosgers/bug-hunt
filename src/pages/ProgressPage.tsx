@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Skill } from '../content/types.ts'
-import { hrefFor } from '../hooks/route.ts'
+import { hrefs } from '../hooks/route.ts'
 import { loadProgress } from '../progress/store.ts'
 import { toLocalDay } from '../progress/streak.ts'
 import { summarizeProgress } from '../progress/summary.ts'
@@ -31,7 +31,7 @@ export function ProgressPage({ availableSkills }: { availableSkills: Skill[] }) 
           <span aria-hidden="true">🐞</span> {APP_TITLE}
         </h1>
         <div className={styles.right}>
-          <a className={styles.link} href={hrefFor('game')}>
+          <a className={styles.link} href={hrefs.daily}>
             ← Back to the game
           </a>
           <ThemeToggle />
@@ -43,7 +43,7 @@ export function ProgressPage({ availableSkills }: { availableSkills: Skill[] }) 
         {summary.solvedCount === 0 && (
           <p className={styles.empty}>
             Nothing here yet, and that is fine. Solve your first bug and this page fills
-            up. <a href={hrefFor('game')}>Go to today&apos;s bug</a>.
+            up. <a href={hrefs.daily}>Go to today&apos;s bug</a>.
           </p>
         )}
 
