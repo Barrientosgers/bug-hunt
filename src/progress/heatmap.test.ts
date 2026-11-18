@@ -24,7 +24,7 @@ describe('buildHeatmap', () => {
   it('counts solves and shades by count', () => {
     const grid = buildHeatmap({ [TODAY]: 2, '2026-11-17': 9 }, TODAY)
     expect(grid[11][2]).toMatchObject({ count: 2, level: 2 })
-    expect(grid[11][1]).toMatchObject({ count: 9, level: 4 })
+    expect(grid[11][1]).toMatchObject({ count: 9, level: 3 })
     expect(grid[11][0]).toMatchObject({ count: 0, level: 0 })
   })
 
@@ -41,8 +41,8 @@ describe('buildHeatmap', () => {
 })
 
 describe('levelFor', () => {
-  it('caps at 4', () => {
-    expect([0, 1, 2, 3, 4, 10].map(levelFor)).toEqual([0, 1, 2, 3, 4, 4])
+  it('caps at 3', () => {
+    expect([0, 1, 2, 3, 4, 10].map(levelFor)).toEqual([0, 1, 2, 3, 3, 3])
   })
 })
 

@@ -40,6 +40,11 @@ export function Heatmap({
                         {cell.day}: {cell.count} solved
                       </span>
                     )}
+                    {cell.count > 0 && (
+                      <span className={styles.count} aria-hidden="true">
+                        {cell.count}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -49,7 +54,7 @@ export function Heatmap({
       </div>
       <div className={styles.legend} aria-hidden="true">
         Less
-        {[0, 1, 2, 3, 4].map((level) => (
+        {[0, 1, 2, 3].map((level) => (
           <span key={level} className={styles.cell} data-level={level} />
         ))}
         More
