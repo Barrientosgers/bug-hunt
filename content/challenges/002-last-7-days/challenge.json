@@ -1,0 +1,146 @@
+{
+  "id": "002-last-7-days",
+  "number": 2,
+  "kind": "code",
+  "title": "\"Last 7 days\" counts 8 days",
+  "character": "maya",
+  "difficulty": "easy",
+  "skill": "loops",
+  "languageSpecific": null,
+  "ticket": {
+    "subject": "Weekly summary includes too many days",
+    "body": "Hi team! The merchant dashboard says \"Last 7 days\", but one restaurant owner counted her orders and says the numbers include an order from a full week ago. She does not think it should be there. Owners get the weekly newsletter on Friday, so I would love this fixed before then. Thanks! (Maya, Product)"
+  },
+  "briefing": "Today's skill is boundaries. Bugs love the edges of a range: the first day, the last day, the exact limit. Tip: before you touch the code, work out by hand which days SHOULD be included when today counts as day 1. Write the numbers down, then check the first and the last one against the code. (Priya)",
+  "lesson": "A range has two edges, and each edge needs its own decision: is it included or not? \"The last 7 days\" with today as day 1 means ages 0 to 6, so the check is age < 7, not age <= 7. Count it out by hand before you trust a comparison.",
+  "howToPrevent": "Write down the boundary values before you code: for a 7-day window, which age is the first one out? Then test exactly that value, plus the one just inside it. Name your constants clearly (WINDOW_DAYS) and prefer half-open ranges (>= start and < end), which are easier to get right.",
+  "whereItShowsUpAtWork": "Off-by-one errors hide in pagination (page 0 or page 1?), date ranges (is the end date included?), array slicing, billing periods and rate limits. They are famous because the code looks right and works for most inputs, so the bug only shows at the exact edge.",
+  "bonusTests": "A bonus test checks that an order dated in the future (for example from a clock mix-up) is not counted. A negative age passes the `age < days` check, so the range needs a lower edge too.",
+  "hypothesis": {
+    "where": [
+      "isrecent",
+      "is_recent",
+      "recent",
+      "filter",
+      "age",
+      "condition",
+      "compar",
+      "window",
+      "range",
+      "boundary",
+      "cutoff"
+    ],
+    "why": [
+      "off-by-one",
+      "off by one",
+      "<=",
+      "boundary",
+      "edge",
+      "inclusive",
+      "exclusive",
+      "extra day",
+      "one day",
+      "eight",
+      "8 days",
+      "too many",
+      "too far",
+      "count"
+    ],
+    "good": "Your hypothesis pointed at the boundary of the window, which is exactly where the bug was. Spotting an edge case from a vague ticket is real detective work.",
+    "partial": "You were close: part of your hypothesis matched the real cause. Notice which part you got right, because that instinct is worth trusting.",
+    "miss": "Your hunch was different from the real cause, and that is completely normal. Ruling things out is how debugging works. Compare your guess with the root cause above to sharpen your instincts for next time.",
+    "skipped": "You skipped the journal this time. Next time, even a one-line guess helps you debug faster, because it gives you something to confirm or rule out."
+  },
+  "languages": {
+    "js": {
+      "fileName": "orders.js",
+      "buggy": "js/buggy.js",
+      "solution": "js/solution.js",
+      "tests": "js/tests.js",
+      "hints": [
+        "Read the failing test 'leaves out an order from exactly 7 days ago'. Which order is wrongly included? Before you look at the code, write down which days a 7-day window should cover when today counts as day 1.",
+        "Log the numbers: add console.log(age, days) inside isRecent. What is age for the order from exactly 7 days ago, and what does the comparison do with it? Do the same for the order from 6 days ago.",
+        "A window of 7 days that includes today covers ages 0, 1, 2, 3, 4, 5 and 6. That is seven numbers. Now count how many ages pass the check age <= 7: 0 to 7 is eight numbers. The comparison lets one day too many in.",
+        "Change <= to <: return age < days. While you are there, think about what an order from tomorrow would do (its age is negative). Adding age >= 0 closes the other edge of the range."
+      ],
+      "reviewRules": [
+        {
+          "id": "fixes-boundary",
+          "kind": "root-cause",
+          "pattern": "age\\s*<\\s*days|<\\s*days|<=\\s*days\\s*-\\s*1",
+          "matches": true,
+          "feedback": "You fixed the upper edge of the window: age < days. That is the root cause, because \"7 days including today\" means ages 0 to 6."
+        },
+        {
+          "id": "still-off-by-one",
+          "kind": "symptom",
+          "pattern": "age\\s*<\\s*days|<\\s*days|<=\\s*days\\s*-\\s*1",
+          "matches": false,
+          "feedback": "The check still lets age equal to days through, so the window is one day too wide. Count the allowed ages out by hand to check you fixed the cause and not just the examples."
+        },
+        {
+          "id": "guards-lower-edge",
+          "kind": "bonus",
+          "pattern": "age\\s*>=\\s*0|>=\\s*0|0\\s*<=\\s*age",
+          "matches": true,
+          "feedback": "Bonus find: you also guarded the lower edge (age >= 0), so future-dated orders stay out. A range has two edges, and you remembered both."
+        },
+        {
+          "id": "lower-edge",
+          "kind": "tip",
+          "pattern": "age\\s*>=\\s*0|>=\\s*0|0\\s*<=\\s*age",
+          "matches": false,
+          "feedback": "Tip: a range has two edges. An order dated in the future has a negative age, which still passes age < days. The bonus test checks for it: try adding age >= 0."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 4
+      }
+    },
+    "python": {
+      "fileName": "orders.py",
+      "buggy": "python/buggy.py",
+      "solution": "python/solution.py",
+      "tests": "python/tests.py",
+      "hints": [
+        "Read the failing test 'leaves out an order from exactly 7 days ago'. Which order is wrongly included? Before you look at the code, write down which days a 7-day window should cover when today counts as day 1.",
+        "Print the numbers: add print(age, days) inside is_recent. What is age for the order from exactly 7 days ago, and what does the comparison do with it? Do the same for the order from 6 days ago.",
+        "A window of 7 days that includes today covers ages 0, 1, 2, 3, 4, 5 and 6. That is seven numbers. Now count how many ages pass the check age <= 7: 0 to 7 is eight numbers. The comparison lets one day too many in.",
+        "Change <= to <: return age < days. While you are there, think about what an order from tomorrow would do (its age is negative). Python lets you write both edges at once: return 0 <= age < days."
+      ],
+      "reviewRules": [
+        {
+          "id": "fixes-boundary",
+          "kind": "root-cause",
+          "pattern": "<\\s*days|<=\\s*days\\s*-\\s*1",
+          "matches": true,
+          "feedback": "You fixed the upper edge of the window: age < days. That is the root cause, because \"7 days including today\" means ages 0 to 6."
+        },
+        {
+          "id": "still-off-by-one",
+          "kind": "symptom",
+          "pattern": "<\\s*days|<=\\s*days\\s*-\\s*1",
+          "matches": false,
+          "feedback": "The check still lets age equal to days through, so the window is one day too wide. Count the allowed ages out by hand to check you fixed the cause and not just the examples."
+        },
+        {
+          "id": "guards-lower-edge",
+          "kind": "bonus",
+          "pattern": "0\\s*<=\\s*age|age\\s*>=\\s*0|>=\\s*0",
+          "matches": true,
+          "feedback": "Bonus find: you also guarded the lower edge (0 <= age), so future-dated orders stay out. A range has two edges, and you remembered both."
+        },
+        {
+          "id": "lower-edge",
+          "kind": "tip",
+          "pattern": "0\\s*<=\\s*age|age\\s*>=\\s*0|>=\\s*0",
+          "matches": false,
+          "feedback": "Tip: a range has two edges. An order dated in the future has a negative age, which still passes age < days. The bonus test checks for it: try 0 <= age < days."
+        }
+      ],
+      "minimalChange": {
+        "maxLines": 4
+      }
+    }
+  }
+}
