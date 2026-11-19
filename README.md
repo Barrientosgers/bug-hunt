@@ -13,7 +13,12 @@ from a dropdown; everything runs in your browser, with no sign-up.
 
 ### ▶ [Play it now](https://barrientosgers.github.io/bug-hunt/)
 
-<!-- Demo GIF goes here (docs/demo.gif). -->
+<p>
+  <img src="docs/screenshots/ticket-and-code.png" alt="The Bug Hunt game: a bug ticket from Maya and a briefing from Priya on the left, buggy code on the right with Run tests and Hint buttons" width="49%" />
+  <img src="docs/screenshots/code-review.png" alt="After solving a bug: all required tests pass, and Priya reviews the fix as root cause, strong, and minimal change, strong" width="49%" />
+</p>
+
+_Left: a ticket, the buggy code and the hint button. Right: after the fix, Priya reviews it._
 
 ## How a challenge works
 
