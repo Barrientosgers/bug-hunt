@@ -1,4 +1,5 @@
 import type { Challenge, Hypothesis, Language } from '../content/types.ts'
+import { plural } from '../format.ts'
 import type { JournalEntry, JournalState } from '../game/journal.ts'
 import { diffStats } from './diff.ts'
 import { firedRules } from './rules.ts'
@@ -48,9 +49,6 @@ export function matchHypothesis(
   if (whereHit && whyHit) return 'good'
   return whereHit || whyHit ? 'partial' : 'miss'
 }
-
-const plural = (count: number, word: string) =>
-  `${count} ${word}${count === 1 ? '' : 's'}`
 
 function rootCauseSection(input: ReviewInput): ReviewSection {
   const rules = input.challenge.languages[input.language]?.reviewRules ?? []

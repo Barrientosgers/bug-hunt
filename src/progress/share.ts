@@ -1,4 +1,5 @@
 import { LANGUAGE_LABELS, type Language } from '../content/types.ts'
+import { plural } from '../format.ts'
 import { formatDuration } from '../game/timer.ts'
 
 /** Where players are sent from a shared result (live after the Phase 7 deploy). */
@@ -39,9 +40,6 @@ export interface ShareInput {
   streak: number
   rankName: string
 }
-
-const plural = (count: number, word: string) =>
-  `${count} ${word}${count === 1 ? '' : 's'}`
 
 /**
  * The text a player shares. It has no spoilers on purpose: no code, no bug title, no hint
