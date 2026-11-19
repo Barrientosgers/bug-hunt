@@ -4,6 +4,15 @@ A daily debugging game for junior developers. Public GitHub repo (portfolio) and
 
 Think "Wordle meets a real engineering job", with points and flags like TryHackMe and a language dropdown like LeetCode.
 
+## Status
+
+**The MVP is complete and live** (finished 2026-11-19): https://barrientosgers.github.io/bug-hunt/
+
+- 5 starter challenges, each in JavaScript and Python (001 leaderboard, 002 last 7 days, 003 free delivery, 004 FIVEOFF missing return, 005 money math).
+- Daily bug (picked from the calendar date), practice library, progress page, first-visit intro, rewards (flag, XP, ranks, badges, streaks, share card), mentor (hints, stuck detection, code review).
+- CI runs the full gate on every push; the Deploy workflow publishes to GitHub Pages from `main` after the same gate.
+- Nothing required is left. See "Later" and "Challenge types roadmap" for what could come next (more challenges are the most useful next step: the daily bug repeats every 5 days).
+
 ## How we work (ALWAYS follow)
 
 - Work step by step, one phase at a time. At the end of each phase, stop, summarize what changed, and wait for the user's approval before moving on.
@@ -100,7 +109,7 @@ Encouraging, never shaming. Getting stuck is normal. Praise good debugging PROCE
 - GitHub Actions: lint, unit tests and the challenge verification script on every push; deploy to GitHub Pages from main.
 - Final README: what Bug Hunt is and why it exists, demo GIF, live link, how a challenge works, mentor and hint philosophy, how challenges are verified (mutation check), tech stack, architecture diagram, roadmap, CI badge.
 
-## Phases
+## Phases (all done)
 
 0. Setup: repo, Vite + React + TS, ESLint, Prettier, Vitest, folder structure, .gitignore, MIT license, this file. First commit and push.
 1. Challenge format + the leaderboard challenge (JS and Python) + the verification script
@@ -110,7 +119,7 @@ Encouraging, never shaming. Getting stuck is normal. Praise good debugging PROCE
 5. Rewards: flag, XP breakdown, ranks, skill points, badges, streaks (localStorage), shareable result
 6. Remaining 4 starter challenges + daily bug selection + practice library page
 7. CI (lint, tests, verification) and GitHub Pages deployment
-8. Polish: home page, accessibility check, mobile layout, README with demo GIF and live link
+8. Polish: home page, accessibility check, mobile layout, README with screenshots and live link (screenshots replaced the planned demo GIF)
 
 ## Later (do NOT build yet, but keep the architecture ready)
 
@@ -142,6 +151,25 @@ Real debugging is a loop: **Reproduce → Locate → Fix → Prevent**. The MVP 
 - "Inspired by a real bug" cards (e.g. Mars Climate Orbiter unit mix-up, Y2K two-digit years, Knight Capital deployment) shown after solving, as part of "where this shows up at work". Fictional code, but only facts that are verified accurate.
 - Real bugs from open-source projects stay a post-launch option (see "Real-world replays"), trimmed to small self-contained versions, labeled as real, with license credit.
 
+## Decisions already made (do not re-ask)
+
+- npm; TypeScript pinned to 6.0.x (typescript-eslint does not support 7); Pyodide 314.0.7 and Monaco 0.57.0 loaded from the jsDelivr CDN at pinned versions (a test checks the Monaco version matches); npm `overrides` pins dompurify 3.4.17.
+- Plain CSS with CSS variables and CSS Modules (no Tailwind); dark theme by default, warm orange accent, WCAG AA contrast.
+- Prettier: no semicolons in app code, but challenge `.js` files keep semicolons (override in `.prettierrc`).
+- XP is awarded once per bug (the second language gets a flag and skill points only). Ranks at 0/50/150/350/700/1200 XP. Streak bonus +1 per extra day, capped at +5. Fast solve at 5/12/25 minutes of active time. Daily bug +10.
+- Reference solutions are never bundled into the browser build. Hint text and review rules ship inside `challenge.json` (accepted limit, stated in the README).
+- Routing uses the URL hash (`#/`, `#/play/<id>`, `#/practice`, `#/progress`) so it works on GitHub Pages without server setup. The Game component stays mounted (hidden) on other pages.
+- New starter challenges are "easy" and single-file. A real "medium" challenge needs multi-file support the game does not have yet.
+- Progress is derived from saved `Solve` records in localStorage (versioned, parsed defensively); XP, ranks, badges and the heatmap are never stored separately.
+
+## Lessons learned
+
+- Run the FULL gate before pushing (`npm run lint && npm run format:check && npm test && npm run verify && npm run build`). Skipping the build once let a type error reach CI.
+- After any layout change, MEASURE the real element sizes in a real browser, and check the live site after the deploy. PR #21 (sticky run buttons) collapsed the Monaco editor to about 5px because of a `height: 100%` inside a flex item with no fixed height; it was fixed in #23. A blank screenshot is a symptom to investigate, not something to explain away.
+- Screenshots at a true phone width: use headless Chrome with device-metrics emulation (DevTools Protocol). Plain `--window-size` has a minimum width.
+- If a Deploy run fails with "Deployment failed, try again later" while the build job passed, it is a GitHub hiccup: re-run the failed job (`gh run rerun <id> --failed`).
+- Keep one copy of small helpers (for example `plural` in `src/format.ts`); copy-pasted helpers drift.
+
 ## Commands
 
-`npm run dev` · `npm run build` · `npm run lint` · `npm run format:check` · `npm test` · `npm run verify` (mutation check on every challenge)
+`npm run dev` · `npm run build` · `npm run lint` · `npm run format:check` · `npm test` · `npm run verify` (mutation check on every challenge; needs `python3`)
