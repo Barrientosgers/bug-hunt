@@ -7,6 +7,7 @@ import { DebugJournal } from './components/DebugJournal.tsx'
 import { HintLadder } from './components/HintLadder.tsx'
 import { GameLayout } from './components/GameLayout.tsx'
 import { LanguageSelect } from './components/LanguageSelect.tsx'
+import { IntroBanner } from './components/IntroBanner.tsx'
 import { MentorNudge } from './components/MentorNudge.tsx'
 import { RewardDialog } from './components/RewardDialog.tsx'
 import { RewardSummary } from './components/RewardSummary.tsx'
@@ -17,6 +18,7 @@ import { TimerBadge } from './components/TimerBadge.tsx'
 import { listChallenges } from './content/loader.ts'
 import { hrefs } from './hooks/route.ts'
 import { dailyChallenge } from './game/daily.ts'
+import { readIntroDismissed, saveIntroDismissed, shouldShowIntro } from './game/intro.ts'
 import { PracticePage } from './pages/PracticePage.tsx'
 import { useHashRoute } from './hooks/useHashRoute.ts'
 import { ProgressPage } from './pages/ProgressPage.tsx'
@@ -110,6 +112,7 @@ function Routes({ challenges }: { challenges: Challenge[] }) {
           key={current.id}
           challenge={wanted ?? current}
           isDaily={current.id === daily.id}
+          introAllowed={route.page === 'daily'}
         />
       </div>
       {notFound && (
@@ -128,7 +131,16 @@ function Routes({ challenges }: { challenges: Challenge[] }) {
   )
 }
 
-function Game({ challenge, isDaily }: { challenge: Challenge; isDaily: boolean }) {
+function Game({
+  challenge,
+  isDaily,
+  introAllowed,
+}: {
+  challenge: Challenge
+  isDaily: boolean
+  /** The welcome banner only belongs on the daily page, not on practice links. */
+  introAllowed: boolean
+}) {
   const available = LANGUAGES.filter((language) => challenge.languages[language])
   const [language, setLanguage] = useState<Language>(() =>
     pickLanguage(readSavedLanguage(), available),
@@ -163,6 +175,11 @@ function Game({ challenge, isDaily }: { challenge: Challenge; isDaily: boolean }
   const summary = current ? summarize(current.result) : null
   const stale = current !== null && current.ranCode !== code
   const progress = useProgress()
+  const [introDismissed, setIntroDismissed] = useState(readIntroDismissed)
+  function dismissIntro() {
+    saveIntroDismissed()
+    setIntroDismissed(true)
+  }
   const storedSolve = findSolve(progress.data, challenge.id, language)
   const progressSummary = summarizeProgress(
     progress.data,
@@ -305,6 +322,9 @@ function Game({ challenge, isDaily }: { challenge: Challenge; isDaily: boolean }
 
   const ticket = (
     <>
+      {introAllowed && shouldShowIntro(progress.data.solves.length, introDismissed) && (
+        <IntroBanner onDismiss={dismissIntro} />
+      )}
       <h2 className={styles.ticketTitle}>
         Ticket #{String(challenge.number).padStart(3, '0')}
         {challenge.languageSpecific && (
