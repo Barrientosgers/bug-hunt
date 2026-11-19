@@ -402,35 +402,37 @@ function Game({
         onShowHint={revealHint}
         onDismiss={markEngaged}
       />
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={styles.primary}
-          onClick={runTests}
-          disabled={
-            !journal.unlocked || running || code === undefined || tests === undefined
-          }
-        >
-          {running ? 'Running…' : '▶ Run tests'}
-        </button>
-        <button type="button" onClick={revealHint} disabled={hints.nextLevel === null}>
-          {hints.nextLevel === null
-            ? '💡 All hints used'
-            : `💡 Hint ${hints.nextLevel} of ${HINT_COUNT} (−${HINT_COST} XP)`}
-        </button>
-        <button type="button" onClick={resetCode} disabled={!isEdited}>
-          ↺ Reset code
-        </button>
+      <div className={styles.runBar}>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.primary}
+            onClick={runTests}
+            disabled={
+              !journal.unlocked || running || code === undefined || tests === undefined
+            }
+          >
+            {running ? 'Running…' : '▶ Run tests'}
+          </button>
+          <button type="button" onClick={revealHint} disabled={hints.nextLevel === null}>
+            {hints.nextLevel === null
+              ? '💡 All hints used'
+              : `💡 Hint ${hints.nextLevel} of ${HINT_COUNT} (−${HINT_COST} XP)`}
+          </button>
+          <button type="button" onClick={resetCode} disabled={!isEdited}>
+            ↺ Reset code
+          </button>
+        </div>
+        <p role="status" className={styles.runStatus}>
+          {running
+            ? 'Running your code…'
+            : hintNotice
+              ? `Hint ${hints.used} is ready: open Results › Hints.`
+              : summary
+                ? `Last run: ${headline(summary)}${stale ? ' (before your latest edit)' : ''}`
+                : ''}
+        </p>
       </div>
-      <p role="status" className={styles.runStatus}>
-        {running
-          ? 'Running your code…'
-          : hintNotice
-            ? `Hint ${hints.used} is ready: open Results › Hints.`
-            : summary
-              ? `Last run: ${headline(summary)}${stale ? ' (before your latest edit)' : ''}`
-              : ''}
-      </p>
       <p className={styles.keyboardHelp}>
         Tip: Ctrl+Enter (Cmd+Enter on a Mac) runs the tests. Keyboard users: press Ctrl+M
         (Ctrl+Shift+M on a Mac) to let the Tab key move focus out of the editor.
