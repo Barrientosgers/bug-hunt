@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Skill } from '../content/types.ts'
+import { plural } from '../format.ts'
 import { hrefs } from '../hooks/route.ts'
 import { loadProgress } from '../progress/store.ts'
 import { toLocalDay } from '../progress/streak.ts'
@@ -70,11 +71,11 @@ export function ProgressPage({ availableSkills }: { availableSkills: Skill[] }) 
             </div>
             <div>
               <dt>Current streak</dt>
-              <dd>{summary.currentStreak} days</dd>
+              <dd>{plural(summary.currentStreak, 'day')}</dd>
             </div>
             <div>
               <dt>Best streak</dt>
-              <dd>{summary.bestStreak} days</dd>
+              <dd>{plural(summary.bestStreak, 'day')}</dd>
             </div>
           </dl>
         </section>
