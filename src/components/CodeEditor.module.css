@@ -1,6 +1,6 @@
 .wrapper {
-  height: 100%;
-  min-height: 14rem;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

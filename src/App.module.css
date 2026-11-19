@@ -74,6 +74,9 @@
 }
 
 .codeArea {
+  /* The editor fills this box exactly. It is positioned inside, so its height never
+     depends on a percentage of a parent whose height is not fixed. */
+  position: relative;
   flex: 1;
   min-height: 14rem;
 }
